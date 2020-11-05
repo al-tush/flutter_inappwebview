@@ -1877,10 +1877,15 @@ public class InAppWebView: WKWebView, UIScrollViewDelegate, WKUIDelegate, WKNavi
     public func webView(_ webView: WKWebView,
                  decidePolicyFor navigationAction: WKNavigationAction,
                  decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+        guard let options = options else {
+            decisionHandler(.allow)
+            print("Failed to process shouldOverrideUrlLoading. options is nil")
+            return
+        }
         
         if let url = navigationAction.request.url {
             
-            if activateShouldOverrideUrlLoading && (options?.useShouldOverrideUrlLoading)! {
+            if activateShouldOverrideUrlLoading && options.useShouldOverrideUrlLoading {
                 
                 let isForMainFrame = navigationAction.targetFrame?.isMainFrame ?? false
                 
