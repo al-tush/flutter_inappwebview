@@ -2,6 +2,7 @@ package com.pichillilorenzo.flutter_inappwebview.InAppWebView;
 
 import android.annotation.TargetApi;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.net.http.SslError;
 import android.os.Build;
 import android.os.Message;
@@ -88,16 +89,22 @@ public class InAppWebViewClient extends WebViewClient {
           return true;
         else {
           Matcher m = webView.regexToCancelSubFramesLoadingCompiled.matcher(request.getUrl().toString());
-          if (m.matches())
-            return true;
-          else
-            return false;
+          return (m.matches());
         }
-      } else {
-        // There isn't any way to load an URL for a frame that is not the main frame,
-        // so if the request is not for the main frame, the navigation is allowed.
-        return request.isForMainFrame();
       }
+      if (webView.options.interceptRequestTemplates != null) {
+        Uri url = request.getUrl();
+        for (AndroidInterceptRequestTemplate template : webView.options.interceptRequestTemplates) {
+          Log.d("TEST", "check template");
+          if (template.isMatches(url)) {
+            Log.d("TEST", "template matches");
+            return true;
+          }
+        }
+      }
+      // There isn't any way to load an URL for a frame that is not the main frame,
+      // so if the request is not for the main frame, the navigation is allowed.
+      return request.isForMainFrame();
     }
     return false;
   }

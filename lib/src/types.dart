@@ -3148,24 +3148,30 @@ class CreateWindowRequest {
   ///Indicates if the request was initiated by a user gesture, such as the user clicking a link. Available only on Android.
   bool androidIsUserGesture;
 
+  ///Indicates that the request is matches to [AndroidInAppWebViewOptions.interceptRequestTemplates] and must be intercepted. Available only on Android.
+  bool androidRequestIntercepted;
+
   ///The type of action triggering the navigation. Available only on iOS.
   IOSWKNavigationType iosWKNavigationType;
 
   ///Whether the request was made in order to fetch the main frame's document. Available only on iOS.
   bool iosIsForMainFrame;
 
-  CreateWindowRequest(
-      {this.url,
-      this.windowId,
-      this.androidIsDialog,
-      this.androidIsUserGesture,
-      this.iosWKNavigationType,
-      this.iosIsForMainFrame});
+  CreateWindowRequest({
+    this.url,
+    this.windowId,
+    this.androidIsDialog,
+    this.androidIsUserGesture,
+    this.androidRequestIntercepted,
+    this.iosWKNavigationType,
+    this.iosIsForMainFrame,
+  });
 
   Map<String, dynamic> toMap() {
     return {
       "androidIsDialog": androidIsDialog,
       "androidIsUserGesture": androidIsUserGesture,
+      "androidRequestIntercepted": androidRequestIntercepted,
       "iosWKNavigationType": iosWKNavigationType?.toValue(),
       "iosUrl": url,
       "windowId": windowId

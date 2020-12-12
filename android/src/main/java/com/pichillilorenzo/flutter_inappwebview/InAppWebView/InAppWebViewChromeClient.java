@@ -39,6 +39,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 
+import com.pichillilorenzo.flutter_inappwebview.BuildConfig;
 import com.pichillilorenzo.flutter_inappwebview.InAppBrowser.InAppBrowserActivity;
 import com.pichillilorenzo.flutter_inappwebview.InAppWebViewFlutterPlugin;
 import com.pichillilorenzo.flutter_inappwebview.R;
@@ -536,48 +537,48 @@ public class InAppWebViewChromeClient extends WebChromeClient implements PluginR
   }
 
   public void createBeforeUnloadDialog(WebView view, String message, final JsResult result, String responseMessage, String confirmButtonTitle, String cancelButtonTitle) {
-      String alertMessage = (responseMessage != null && !responseMessage.isEmpty()) ? responseMessage : message;
-      DialogInterface.OnClickListener confirmClickListener = new DialogInterface.OnClickListener() {
-        @Override
-        public void onClick(DialogInterface dialog, int which) {
-          result.confirm();
-          dialog.dismiss();
-        }
-      };
-      DialogInterface.OnClickListener cancelClickListener = new DialogInterface.OnClickListener() {
-        @Override
-        public void onClick(DialogInterface dialog, int which) {
-          result.cancel();
-          dialog.dismiss();
-        }
-      };
-
-      Activity activity = inAppBrowserActivity != null ? inAppBrowserActivity : Shared.activity;
-
-      AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(activity, R.style.Theme_AppCompat_Dialog_Alert);
-      alertDialogBuilder.setMessage(alertMessage);
-      if (confirmButtonTitle != null && !confirmButtonTitle.isEmpty()) {
-        alertDialogBuilder.setPositiveButton(confirmButtonTitle, confirmClickListener);
-      } else {
-        alertDialogBuilder.setPositiveButton(android.R.string.ok, confirmClickListener);
+    String alertMessage = (responseMessage != null && !responseMessage.isEmpty()) ? responseMessage : message;
+    DialogInterface.OnClickListener confirmClickListener = new DialogInterface.OnClickListener() {
+      @Override
+      public void onClick(DialogInterface dialog, int which) {
+        result.confirm();
+        dialog.dismiss();
       }
-      if (cancelButtonTitle != null && !cancelButtonTitle.isEmpty()) {
-        alertDialogBuilder.setNegativeButton(cancelButtonTitle, cancelClickListener);
-      } else {
-        alertDialogBuilder.setNegativeButton(android.R.string.cancel, cancelClickListener);
+    };
+    DialogInterface.OnClickListener cancelClickListener = new DialogInterface.OnClickListener() {
+      @Override
+      public void onClick(DialogInterface dialog, int which) {
+        result.cancel();
+        dialog.dismiss();
       }
+    };
 
-      alertDialogBuilder.setOnCancelListener(new DialogInterface.OnCancelListener() {
-        @Override
-        public void onCancel(DialogInterface dialog) {
-          result.cancel();
-          dialog.dismiss();
-        }
-      });
+    Activity activity = inAppBrowserActivity != null ? inAppBrowserActivity : Shared.activity;
 
-      AlertDialog alertDialog = alertDialogBuilder.create();
-      alertDialog.show();
+    AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(activity, R.style.Theme_AppCompat_Dialog_Alert);
+    alertDialogBuilder.setMessage(alertMessage);
+    if (confirmButtonTitle != null && !confirmButtonTitle.isEmpty()) {
+      alertDialogBuilder.setPositiveButton(confirmButtonTitle, confirmClickListener);
+    } else {
+      alertDialogBuilder.setPositiveButton(android.R.string.ok, confirmClickListener);
     }
+    if (cancelButtonTitle != null && !cancelButtonTitle.isEmpty()) {
+      alertDialogBuilder.setNegativeButton(cancelButtonTitle, cancelClickListener);
+    } else {
+      alertDialogBuilder.setNegativeButton(android.R.string.cancel, cancelClickListener);
+    }
+
+    alertDialogBuilder.setOnCancelListener(new DialogInterface.OnCancelListener() {
+      @Override
+      public void onCancel(DialogInterface dialog) {
+        result.cancel();
+        dialog.dismiss();
+      }
+    });
+
+    AlertDialog alertDialog = alertDialogBuilder.create();
+    alertDialog.show();
+  }
 
   @Override
   public boolean onCreateWindow(WebView view, boolean isDialog, boolean isUserGesture, final Message resultMsg) {
@@ -585,7 +586,20 @@ public class InAppWebViewChromeClient extends WebChromeClient implements PluginR
     final int windowId = windowAutoincrementId;
 
     WebView.HitTestResult result = view.getHitTestResult();
-    String url = result.getExtra();
+    final String url = result.getExtra();
+
+    InAppWebView webView = (InAppWebView) view;
+    boolean interceptRequest = false;
+    if (webView.options.interceptRequestTemplates != null) {
+      Uri uri = Uri.parse(url);
+      for (AndroidInterceptRequestTemplate template : webView.options.interceptRequestTemplates) {
+        if (template.isMatches(uri)) {
+          Log.d(LOG_TAG, "interceptRequestTemplates matches for " + url);
+          interceptRequest = true;
+          break;
+        }
+      }
+    }
 
     final Map<String, Object> obj = new HashMap<>();
     if (inAppBrowserActivity != null)
@@ -594,17 +608,22 @@ public class InAppWebViewChromeClient extends WebChromeClient implements PluginR
     obj.put("windowId", windowId);
     obj.put("androidIsDialog", isDialog);
     obj.put("androidIsUserGesture", isUserGesture);
+    obj.put("androidRequestIntercepted", interceptRequest);
     obj.put("iosWKNavigationType", null);
     obj.put("iosIsForMainFrame", null);
 
     windowWebViewMessages.put(windowId, resultMsg);
 
+    final boolean finalInterceptRequest = interceptRequest;
     channel.invokeMethod("onCreateWindow", obj, new MethodChannel.Result() {
       @Override
       public void success(@Nullable Object result) {
         boolean handledByClient = false;
         if (result instanceof Boolean) {
           handledByClient = (boolean) result;
+          if (finalInterceptRequest && !handledByClient) {
+            Log.e(LOG_TAG, "Unhandled onCreateWindow request when interceptRequestTemplates matches for " + url);
+          }
         }
         if (!handledByClient && InAppWebViewChromeClient.windowWebViewMessages.containsKey(windowId)) {
           InAppWebViewChromeClient.windowWebViewMessages.remove(windowId);
@@ -626,7 +645,7 @@ public class InAppWebViewChromeClient extends WebChromeClient implements PluginR
       }
     });
 
-    return true;
+    return !interceptRequest;
   }
 
   @Override

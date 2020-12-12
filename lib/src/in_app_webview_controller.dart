@@ -210,6 +210,7 @@ class InAppWebViewController {
         int windowId = call.arguments["windowId"];
         bool androidIsDialog = call.arguments["androidIsDialog"];
         bool androidIsUserGesture = call.arguments["androidIsUserGesture"];
+        bool androidRequestIntercepted = call.arguments["androidRequestIntercepted"];
         int iosWKNavigationType = call.arguments["iosWKNavigationType"];
         bool iosIsForMainFrame = call.arguments["iosIsForMainFrame"];
 
@@ -218,6 +219,7 @@ class InAppWebViewController {
             windowId: windowId,
             androidIsDialog: androidIsDialog,
             androidIsUserGesture: androidIsUserGesture,
+            androidRequestIntercepted: androidRequestIntercepted,
             iosWKNavigationType:
                 IOSWKNavigationType.fromValue(iosWKNavigationType),
             iosIsForMainFrame: iosIsForMainFrame);

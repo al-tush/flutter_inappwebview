@@ -2478,6 +2478,7 @@ public class InAppWebView: WKWebView, UIScrollViewDelegate, WKUIDelegate, WKNavi
             "windowId": windowId,
             "androidIsDialog": nil,
             "androidIsUserGesture": nil,
+            "androidRequestIntercepted": nil,
             "iosWKNavigationType": navigationAction.navigationType.rawValue,
             "iosIsForMainFrame": navigationAction.targetFrame?.isMainFrame ?? false
         ]
