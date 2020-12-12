@@ -95,9 +95,8 @@ public class InAppWebViewClient extends WebViewClient {
       if (webView.options.interceptRequestTemplates != null) {
         Uri url = request.getUrl();
         for (AndroidInterceptRequestTemplate template : webView.options.interceptRequestTemplates) {
-          Log.d("TEST", "check template");
           if (template.isMatches(url)) {
-            Log.d("TEST", "template matches");
+            Log.d(LOG_TAG, "interceptRequestTemplates matches for " + url.toString());
             return true;
           }
         }
