@@ -591,12 +591,14 @@ public class InAppWebViewChromeClient extends WebChromeClient implements PluginR
     InAppWebView webView = (InAppWebView) view;
     boolean interceptRequest = false;
     if (webView.options.interceptRequestTemplates != null) {
-      Uri uri = Uri.parse(url);
-      for (AndroidInterceptRequestTemplate template : webView.options.interceptRequestTemplates) {
-        if (template.isMatches(uri)) {
-          Log.d(LOG_TAG, "interceptRequestTemplates matches for " + url);
-          interceptRequest = true;
-          break;
+      if (url!= null && (!url.isEmpty())) {
+        Uri uri = Uri.parse(url);
+        for (AndroidInterceptRequestTemplate template : webView.options.interceptRequestTemplates) {
+          if (template.isMatches(uri)) {
+            Log.d(LOG_TAG, "interceptRequestTemplates matches for " + url);
+            interceptRequest = true;
+            break;
+          }
         }
       }
     }

@@ -8,6 +8,7 @@ public class AndroidInterceptRequestTemplate {
     public String path;
 
     Boolean isMatches(Uri uri) {
+        if (uri == null) return false;
         if ((scheme != null) && (!scheme.equals(uri.getScheme()))) return false;
         if ((host != null) && (!host.equals(uri.getHost()))) return false;
         if ((path != null) && (!path.equals(uri.getPath()))) return false;
