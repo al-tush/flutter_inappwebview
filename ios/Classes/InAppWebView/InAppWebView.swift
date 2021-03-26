@@ -2077,6 +2077,7 @@ public class InAppWebView: WKWebView, UIScrollViewDelegate, WKUIDelegate, WKNavi
         var arguments: [String: Any?] = navigationAction.toMap()
         arguments["windowId"] = windowId
         arguments["iosWindowFeatures"] = windowFeatures.toMap()
+        arguments["androidRequestIntercepted"] = nil
 
         channel?.invokeMethod("onCreateWindow", arguments: arguments, result: { (result) -> Void in
             if result is FlutterError {

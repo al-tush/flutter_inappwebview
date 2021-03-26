@@ -2,6 +2,7 @@ package com.pichillilorenzo.flutter_inappwebview.in_app_webview;
 
 import android.annotation.TargetApi;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.net.http.SslError;
 import android.os.Build;
 import android.os.Message;
@@ -35,6 +36,7 @@ import com.pichillilorenzo.flutter_inappwebview.types.ServerTrustChallenge;
 import com.pichillilorenzo.flutter_inappwebview.types.URLCredential;
 import com.pichillilorenzo.flutter_inappwebview.types.URLProtectionSpace;
 import com.pichillilorenzo.flutter_inappwebview.types.URLRequest;
+import com.pichillilorenzo.flutter_inappwebview.InAppWebView.AndroidInterceptRequestTemplate;
 
 import java.io.ByteArrayInputStream;
 import java.net.URI;
@@ -84,14 +86,23 @@ public class InAppWebViewClient extends WebViewClient {
           return true;
         else {
           Matcher m = webView.regexToCancelSubFramesLoadingCompiled.matcher(request.getUrl().toString());
-          return m.matches();
+          return (m.matches());
         }
-      } else {
-        // There isn't any way to load an URL for a frame that is not the main frame,
-        // so if the request is not for the main frame, the navigation is allowed.
-        return request.isForMainFrame();
       }
+      if (webView.options.interceptRequestTemplates != null) {
+        Uri url = request.getUrl();
+        for (AndroidInterceptRequestTemplate template : webView.options.interceptRequestTemplates) {
+          if (template.isMatches(url)) {
+            Log.d(LOG_TAG, "interceptRequestTemplates matches for " + url.toString());
+            return true;
+          }
+        }
+      }
+      // There isn't any way to load an URL for a frame that is not the main frame,
+      // so if the request is not for the main frame, the navigation is allowed.
+      return request.isForMainFrame();
     }
+
     return false;
   }
 

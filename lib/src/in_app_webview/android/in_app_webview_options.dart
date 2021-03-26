@@ -11,6 +11,46 @@ import '../webview.dart';
 
 class AndroidOptions {}
 
+/// Template for [AndroidInAppWebViewOptions.interceptRequestTemplates]
+class AndroidInterceptRequestTemplate {
+  AndroidInterceptRequestTemplate({
+    this.scheme,
+    this.host,
+    this.path,
+  });
+
+  final String? scheme;
+  final String? host;
+  final String? path;
+
+  @override
+  Map<String, dynamic> toMap() {
+    return {
+      "scheme": scheme,
+      "host": host,
+      "path": path,
+    };
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    return this.toMap();
+  }
+
+  @override
+  String toString() {
+    return toMap().toString();
+  }
+
+  static AndroidInterceptRequestTemplate fromMap(Map<String, dynamic> map) {
+    return AndroidInterceptRequestTemplate(
+      scheme: map["scheme"],
+      host: map["host"],
+      path: map["path"],
+    );
+  }
+}
+
 ///This class represents all the Android-only WebView options available.
 class AndroidInAppWebViewOptions
     implements WebViewOptions, BrowserOptions, AndroidOptions {
@@ -168,6 +208,10 @@ class AndroidInAppWebViewOptions
   ///If the url request of a subframe matches the regular expression, then the request of that subframe is canceled.
   String? regexToCancelSubFramesLoading;
 
+  ///Templates used by [shouldOverrideUrlLoading] event to cancel navigation requests for all frames.
+  ///If the url request matches the template (null fields allways matches), then the request is canceled.
+  List<AndroidInterceptRequestTemplate> interceptRequestTemplates;
+
   ///Set to `true` to enable Flutter's new Hybrid Composition. The default value is `false`.
   ///Hybrid Composition is supported starting with Flutter v1.20+.
   ///
@@ -279,6 +323,7 @@ class AndroidInAppWebViewOptions
     this.initialScale = 0,
     this.supportMultipleWindows = false,
     this.regexToCancelSubFramesLoading,
+    this.interceptRequestTemplates = const <AndroidInterceptRequestTemplate>[],
     this.useHybridComposition = false,
     this.useShouldInterceptRequest = false,
     this.useOnRenderProcessGone = false,
@@ -341,6 +386,7 @@ class AndroidInAppWebViewOptions
       "supportMultipleWindows": supportMultipleWindows,
       "useHybridComposition": useHybridComposition,
       "regexToCancelSubFramesLoading": regexToCancelSubFramesLoading,
+      "interceptRequestTemplates": interceptRequestTemplates.map((e) => e.toMap()).toList(growable: false),
       "useShouldInterceptRequest": useShouldInterceptRequest,
       "useOnRenderProcessGone": useOnRenderProcessGone,
       "overScrollMode": overScrollMode?.toValue(),
@@ -406,6 +452,7 @@ class AndroidInAppWebViewOptions
         map["regexToCancelSubFramesLoading"];
     options.useHybridComposition = map["useHybridComposition"];
     options.useShouldInterceptRequest = map["useShouldInterceptRequest"];
+    options.interceptRequestTemplates = (map["interceptRequestTemplates"] as List<Map<String, dynamic>>).map((e) => AndroidInterceptRequestTemplate.fromMap(e)).toList(growable: false);
     options.useOnRenderProcessGone = map["useOnRenderProcessGone"];
     options.overScrollMode =
         AndroidOverScrollMode.fromValue(map["overScrollMode"]);

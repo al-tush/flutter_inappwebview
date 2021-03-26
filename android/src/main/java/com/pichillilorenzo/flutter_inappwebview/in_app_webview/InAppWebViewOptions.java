@@ -8,6 +8,7 @@ import androidx.annotation.Nullable;
 
 import com.pichillilorenzo.flutter_inappwebview.Options;
 import com.pichillilorenzo.flutter_inappwebview.types.PreferredContentModeOptionType;
+import com.pichillilorenzo.flutter_inappwebview.InAppWebView.AndroidInterceptRequestTemplate;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -87,6 +88,7 @@ public class InAppWebViewOptions implements Options<InAppWebView> {
   public Boolean hardwareAcceleration = true;
   public Boolean supportMultipleWindows = false;
   public String regexToCancelSubFramesLoading;
+  public List<AndroidInterceptRequestTemplate> interceptRequestTemplates;
   public Integer overScrollMode = View.OVER_SCROLL_IF_CONTENT_SCROLLS;
   public Boolean networkAvailable = null;
   public Integer scrollBarStyle = View.SCROLLBARS_INSIDE_OVERLAY;
@@ -312,6 +314,16 @@ public class InAppWebViewOptions implements Options<InAppWebView> {
           break;
         case "regexToCancelSubFramesLoading":
           regexToCancelSubFramesLoading = (String) value;
+          break;
+        case "interceptRequestTemplates":
+          interceptRequestTemplates = new ArrayList<>();
+          for (Map<String, Object> item : (List<Map<String, Object>>) value) {
+            AndroidInterceptRequestTemplate obj = new AndroidInterceptRequestTemplate();
+            obj.scheme = (String) item.get("scheme");
+            obj.host = (String) item.get("host");
+            obj.path = (String) item.get("path");
+            interceptRequestTemplates.add(obj);
+          }
           break;
         case "overScrollMode":
           overScrollMode = (Integer) value;

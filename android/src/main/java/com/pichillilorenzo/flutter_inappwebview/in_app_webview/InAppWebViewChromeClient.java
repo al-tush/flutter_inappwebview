@@ -44,6 +44,7 @@ import com.pichillilorenzo.flutter_inappwebview.types.CreateWindowAction;
 import com.pichillilorenzo.flutter_inappwebview.in_app_browser.ActivityResultListener;
 import com.pichillilorenzo.flutter_inappwebview.in_app_browser.InAppBrowserDelegate;
 import com.pichillilorenzo.flutter_inappwebview.InAppWebViewFlutterPlugin;
+import com.pichillilorenzo.flutter_inappwebview.InAppWebView.AndroidInterceptRequestTemplate;
 import com.pichillilorenzo.flutter_inappwebview.R;
 import com.pichillilorenzo.flutter_inappwebview.Shared;
 import com.pichillilorenzo.flutter_inappwebview.types.URLRequest;
@@ -571,7 +572,22 @@ public class InAppWebViewChromeClient extends WebChromeClient implements PluginR
     final int windowId = windowAutoincrementId;
 
     WebView.HitTestResult result = view.getHitTestResult();
-    String url = result.getExtra();
+    final String url = result.getExtra();
+
+    InAppWebView webView = (InAppWebView) view;
+    boolean interceptRequest = false;
+    if (webView.options.interceptRequestTemplates != null) {
+      if (url!= null && (!url.isEmpty())) {
+        Uri uri = Uri.parse(url);
+        for (AndroidInterceptRequestTemplate template : webView.options.interceptRequestTemplates) {
+          if (template.isMatches(uri)) {
+            Log.d(LOG_TAG, "interceptRequestTemplates matches for " + url);
+            interceptRequest = true;
+            break;
+          }
+        }
+      }
+    }
 
     URLRequest request = new URLRequest(url, "GET", null, null);
     CreateWindowAction createWindowAction = new CreateWindowAction(
@@ -580,10 +596,13 @@ public class InAppWebViewChromeClient extends WebChromeClient implements PluginR
             isUserGesture,
             false,
             windowId,
-            isDialog
+            isDialog,
+            interceptRequest
     );
 
     windowWebViewMessages.put(windowId, resultMsg);
+
+    final boolean finalInterceptRequest = interceptRequest;
 
     channel.invokeMethod("onCreateWindow", createWindowAction.toMap(), new MethodChannel.Result() {
       @Override
@@ -591,6 +610,9 @@ public class InAppWebViewChromeClient extends WebChromeClient implements PluginR
         boolean handledByClient = false;
         if (result instanceof Boolean) {
           handledByClient = (boolean) result;
+          if (finalInterceptRequest && !handledByClient) {
+            Log.e(LOG_TAG, "Unhandled onCreateWindow request when interceptRequestTemplates matches for " + url);
+          }
         }
         if (!handledByClient && InAppWebViewChromeClient.windowWebViewMessages.containsKey(windowId)) {
           InAppWebViewChromeClient.windowWebViewMessages.remove(windowId);
@@ -613,7 +635,7 @@ public class InAppWebViewChromeClient extends WebChromeClient implements PluginR
       }
     });
 
-    return true;
+    return !interceptRequest;
   }
 
   @Override

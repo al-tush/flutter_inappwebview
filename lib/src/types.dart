@@ -4087,25 +4087,29 @@ class CreateWindowAction extends NavigationAction {
   ///**NOTE**: available only on iOS.
   IOSWKWindowFeatures? iosWindowFeatures;
 
-  CreateWindowAction(
-      {required this.windowId,
-      this.androidIsDialog,
-      this.iosWindowFeatures,
-      required URLRequest request,
-      required bool isForMainFrame,
-      bool? androidHasGesture,
-      bool? androidIsRedirect,
-      IOSWKNavigationType? iosWKNavigationType,
-      IOSWKFrameInfo? iosSourceFrame,
-      IOSWKFrameInfo? iosTargetFrame})
-      : super(
-            request: request,
-            isForMainFrame: isForMainFrame,
-            androidHasGesture: androidHasGesture,
-            androidIsRedirect: androidIsRedirect,
-            iosWKNavigationType: iosWKNavigationType,
-            iosSourceFrame: iosSourceFrame,
-            iosTargetFrame: iosTargetFrame);
+  ///Indicates that the request is matches to [AndroidInAppWebViewOptions.interceptRequestTemplates] and must be intercepted. Available only on Android.
+  bool androidRequestIntercepted;
+
+  CreateWindowAction({
+    required this.windowId,
+    this.androidIsDialog,
+    required this.androidRequestIntercepted,
+    this.iosWindowFeatures,
+    required URLRequest request,
+    required bool isForMainFrame,
+    bool? androidHasGesture,
+    bool? androidIsRedirect,
+    IOSWKNavigationType? iosWKNavigationType,
+    IOSWKFrameInfo? iosSourceFrame,
+    IOSWKFrameInfo? iosTargetFrame,
+  }) : super(
+      request: request,
+      isForMainFrame: isForMainFrame,
+      androidHasGesture: androidHasGesture,
+      androidIsRedirect: androidIsRedirect,
+      iosWKNavigationType: iosWKNavigationType,
+      iosSourceFrame: iosSourceFrame,
+      iosTargetFrame: iosTargetFrame);
 
   static CreateWindowAction? fromMap(Map<String, dynamic>? map) {
     if (map == null) {
@@ -4114,6 +4118,7 @@ class CreateWindowAction extends NavigationAction {
     return CreateWindowAction(
         windowId: map["windowId"],
         androidIsDialog: map["androidIsDialog"],
+        androidRequestIntercepted: map["androidRequestIntercepted"],
         iosWindowFeatures: IOSWKWindowFeatures.fromMap(
             map["iosWindowFeatures"]?.cast<String, dynamic>()),
         request: URLRequest.fromMap(map["request"].cast<String, dynamic>())!,
@@ -4134,6 +4139,7 @@ class CreateWindowAction extends NavigationAction {
     createWindowActionMap.addAll({
       "windowId": windowId,
       "androidIsDialog": androidIsDialog,
+      "androidRequestIntercepted": androidRequestIntercepted,
       "iosWindowFeatures": iosWindowFeatures?.toMap(),
     });
     return createWindowActionMap;

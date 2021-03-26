@@ -5,17 +5,20 @@ import java.util.Map;
 public class CreateWindowAction extends NavigationAction {
   int windowId;
   boolean isDialog;
+  boolean androidRequestIntercepted;
 
-  public CreateWindowAction(URLRequest request, boolean isForMainFrame, boolean hasGesture, boolean isRedirect, int windowId, boolean isDialog) {
+  public CreateWindowAction(URLRequest request, boolean isForMainFrame, boolean hasGesture, boolean isRedirect, int windowId, boolean isDialog, boolean androidRequestIntercepted) {
     super(request, isForMainFrame, hasGesture, isRedirect);
     this.windowId = windowId;
     this.isDialog = isDialog;
+    this.androidRequestIntercepted = androidRequestIntercepted;
   }
 
   public Map<String, Object> toMap() {
     Map<String, Object> createWindowActionMap = super.toMap();
     createWindowActionMap.put("windowId", windowId);
     createWindowActionMap.put("androidIsDialog", isDialog);
+    createWindowActionMap.put("androidRequestIntercepted", androidRequestIntercepted);
     return createWindowActionMap;
   }
 
