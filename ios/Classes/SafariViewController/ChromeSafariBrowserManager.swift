@@ -16,6 +16,9 @@ public class ChromeSafariBrowserManager: NSObject, FlutterPlugin {
     static var registrar: FlutterPluginRegistrar?
     static var channel: FlutterMethodChannel?
     
+    // HOTFIX! Need fix for flutter module
+    public static weak var flutterViewController: FlutterViewController?
+    
     public static func register(with registrar: FlutterPluginRegistrar) {
         
     }
@@ -56,9 +59,11 @@ public class ChromeSafariBrowserManager: NSObject, FlutterPlugin {
         
         if #available(iOS 9.0, *) {
             
-            if let flutterViewController = UIApplication.shared.delegate?.window.unsafelyUnwrapped?.rootViewController {
-                // flutterViewController could be casted to FlutterViewController if needed
-                
+            var ctl = UIApplication.shared.delegate?.window??.rootViewController as? FlutterViewController
+            if ctl == nil {
+                ctl = ChromeSafariBrowserManager.flutterViewController
+            }
+            if let flutterViewController = ctl {
                 let safariOptions = SafariBrowserOptions()
                 let _ = safariOptions.parse(options: options)
                 
@@ -85,6 +90,8 @@ public class ChromeSafariBrowserManager: NSObject, FlutterPlugin {
                 flutterViewController.present(safari, animated: true) {
                     result(true)
                 }
+            } else {
+                result(false)
             }
             return
         }
