@@ -84,7 +84,7 @@ class ChromeSafariBrowser {
   ///[url]: The [url] to load.
   ///
   ///[options]: Options for the [ChromeSafariBrowser].
-  Future<void> open(
+  Future<dynamic> open(
       {required Uri url, ChromeSafariBrowserClassOptions? options}) async {
     assert(url.toString().isNotEmpty);
     this.throwIsAlreadyOpened(message: 'Cannot open $url!');
@@ -99,8 +99,9 @@ class ChromeSafariBrowser {
     args.putIfAbsent('url', () => url.toString());
     args.putIfAbsent('options', () => options?.toMap() ?? {});
     args.putIfAbsent('menuItemList', () => menuItemList);
-    await _sharedChannel.invokeMethod('open', args);
+    final res = await _sharedChannel.invokeMethod('open', args);
     this._isOpened = true;
+    return res;
   }
 
   ///Closes the [ChromeSafariBrowser] instance.
