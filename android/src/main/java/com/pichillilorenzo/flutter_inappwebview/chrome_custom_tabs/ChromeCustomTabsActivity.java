@@ -168,6 +168,8 @@ public class ChromeCustomTabsActivity extends Activity implements MethodChannel.
 
     if (options.keepAliveEnabled)
       CustomTabsHelper.addKeepAliveExtra(this, customTabsIntent.intent);
+    else
+      customTabsIntent.intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
   }
 
   @Override
