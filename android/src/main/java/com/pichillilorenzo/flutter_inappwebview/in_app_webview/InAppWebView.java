@@ -22,6 +22,7 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.ActionMode;
 import android.view.ContextMenu;
+import android.view.DragEvent;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -51,9 +52,9 @@ import androidx.annotation.RequiresApi;
 import androidx.webkit.WebViewCompat;
 import androidx.webkit.WebViewFeature;
 
+import com.pichillilorenzo.flutter_inappwebview.InAppWebViewFlutterPlugin;
 import com.pichillilorenzo.flutter_inappwebview.JavaScriptBridgeInterface;
 import com.pichillilorenzo.flutter_inappwebview.R;
-import com.pichillilorenzo.flutter_inappwebview.Shared;
 import com.pichillilorenzo.flutter_inappwebview.Util;
 import com.pichillilorenzo.flutter_inappwebview.content_blocker.ContentBlocker;
 import com.pichillilorenzo.flutter_inappwebview.content_blocker.ContentBlockerAction;
@@ -103,6 +104,8 @@ final public class InAppWebView extends InputAwareWebView {
   static final String LOG_TAG = "InAppWebView";
 
   @Nullable
+  public InAppWebViewFlutterPlugin plugin;
+  @Nullable
   public InAppBrowserDelegate inAppBrowserDelegate;
   public MethodChannel channel;
   public Object id;
@@ -116,7 +119,7 @@ final public class InAppWebView extends InputAwareWebView {
   public InAppWebViewOptions options;
   public boolean isLoading = false;
   public OkHttpClient httpClient;
-  public float scale = getResources().getDisplayMetrics().density;
+  public float zoomScale = 1.0f;
   int okHttpClientCacheSize = 10 * 1024 * 1024; // 10MB
   public ContentBlockerHandler contentBlockerHandler = new ContentBlockerHandler();
   public Pattern regexToCancelSubFramesLoadingCompiled;
@@ -155,18 +158,20 @@ final public class InAppWebView extends InputAwareWebView {
     super(context, attrs, defaultStyle);
   }
 
-  public InAppWebView(Context context, MethodChannel channel, Object id,
+  public InAppWebView(Context context, InAppWebViewFlutterPlugin plugin,
+                      MethodChannel channel, Object id,
                       @Nullable Integer windowId, InAppWebViewOptions options,
                       @Nullable Map<String, Object> contextMenu, View containerView,
                       List<UserScript> userScripts) {
     super(context, containerView, options.useHybridComposition);
+    this.plugin = plugin;
     this.channel = channel;
     this.id = id;
     this.windowId = windowId;
     this.options = options;
     this.contextMenu = contextMenu;
     this.userContentController.addUserOnlyScripts(userScripts);
-    Shared.activity.registerForContextMenu(this);
+    plugin.activity.registerForContextMenu(this);
   }
 
   @Override
@@ -181,7 +186,7 @@ final public class InAppWebView extends InputAwareWebView {
     javaScriptBridgeInterface = new JavaScriptBridgeInterface(this);
     addJavascriptInterface(javaScriptBridgeInterface, JavaScriptBridgeJS.JAVASCRIPT_BRIDGE_NAME);
 
-    inAppWebViewChromeClient = new InAppWebViewChromeClient(channel, inAppBrowserDelegate);
+    inAppWebViewChromeClient = new InAppWebViewChromeClient(plugin, channel, inAppBrowserDelegate);
     setWebChromeClient(inAppWebViewChromeClient);
 
     inAppWebViewClient = new InAppWebViewClient(channel, inAppBrowserDelegate);
@@ -474,22 +479,6 @@ final public class InAppWebView extends InputAwareWebView {
         return false;
       }
     });
-
-    getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-      @Override
-      public void onGlobalLayout() {
-        final boolean canScrollVertical = canScrollVertically();
-        ViewParent parent = getParent();
-        if (parent instanceof PullToRefreshLayout) {
-          PullToRefreshLayout pullToRefreshLayout = (PullToRefreshLayout) parent;
-          if (!canScrollVertical) {
-            pullToRefreshLayout.setEnabled(false);
-          } else {
-            pullToRefreshLayout.setEnabled(pullToRefreshLayout.options.enabled);
-          }
-        }
-      }
-    });
   }
 
   public void setIncognito(boolean enabled) {
@@ -551,7 +540,7 @@ final public class InAppWebView extends InputAwareWebView {
   }
 
   public void loadFile(String assetFilePath) throws IOException {
-    loadUrl(Util.getUrlAsset(assetFilePath));
+    loadUrl(Util.getUrlAsset(plugin, assetFilePath));
   }
 
   public boolean isLoading() {
@@ -579,6 +568,8 @@ final public class InAppWebView extends InputAwareWebView {
   }
 
   public void takeScreenshot(final @Nullable Map<String, Object> screenshotConfiguration, final MethodChannel.Result result) {
+    final float pixelDensity = Util.getPixelDensity(getContext());
+    
     headlessHandler.post(new Runnable() {
       @Override
       public void run() {
@@ -595,10 +586,10 @@ final public class InAppWebView extends InputAwareWebView {
           if (screenshotConfiguration != null) {
             Map<String, Double> rect = (Map<String, Double>) screenshotConfiguration.get("rect");
             if (rect != null) {
-              int rectX = (int) Math.floor(rect.get("x") * scale + 0.5);
-              int rectY = (int) Math.floor(rect.get("y") * scale + 0.5);
-              int rectWidth = Math.min(resized.getWidth(), (int) Math.floor(rect.get("width") * scale + 0.5));
-              int rectHeight = Math.min(resized.getHeight(), (int) Math.floor(rect.get("height") * scale + 0.5));
+              int rectX = (int) Math.floor(rect.get("x") * pixelDensity + 0.5);
+              int rectY = (int) Math.floor(rect.get("y") * pixelDensity + 0.5);
+              int rectWidth = Math.min(resized.getWidth(), (int) Math.floor(rect.get("width") * pixelDensity + 0.5));
+              int rectHeight = Math.min(resized.getHeight(), (int) Math.floor(rect.get("height") * pixelDensity + 0.5));
               resized = Bitmap.createBitmap(
                       resized,
                       rectX,
@@ -609,7 +600,7 @@ final public class InAppWebView extends InputAwareWebView {
 
             Double snapshotWidth = (Double) screenshotConfiguration.get("snapshotWidth");
             if (snapshotWidth != null) {
-              int dstWidth = (int) Math.floor(snapshotWidth * scale + 0.5);
+              int dstWidth = (int) Math.floor(snapshotWidth * pixelDensity + 0.5);
               float ratioBitmap = (float) resized.getWidth() / (float) resized.getHeight();
               int dstHeight = (int) ((float) dstWidth / ratioBitmap);
               resized = Bitmap.createScaledBitmap(resized, dstWidth, dstHeight, true);
@@ -1028,7 +1019,18 @@ final public class InAppWebView extends InputAwareWebView {
       }
       String idAttr = (String) scriptHtmlTagAttributes.get("id");
       if (idAttr != null) {
-        scriptAttributes += " script.id = '" + idAttr.replaceAll("'", "\\\\'") + "'; ";
+        String scriptIdEscaped = idAttr.replaceAll("'", "\\\\'");
+        scriptAttributes += " script.id = '" + scriptIdEscaped + "'; ";
+        scriptAttributes += " script.onload = function() {" +
+        "  if (window." + JavaScriptBridgeJS.JAVASCRIPT_BRIDGE_NAME + " != null) {" +
+        "    window." + JavaScriptBridgeJS.JAVASCRIPT_BRIDGE_NAME + ".callHandler('onInjectedScriptLoaded', '" + scriptIdEscaped + "');" +
+        "  }" +
+        "};";
+        scriptAttributes += " script.onerror = function() {" +
+        "  if (window." + JavaScriptBridgeJS.JAVASCRIPT_BRIDGE_NAME + " != null) {" +
+        "    window." + JavaScriptBridgeJS.JAVASCRIPT_BRIDGE_NAME + ".callHandler('onInjectedScriptError', '" + scriptIdEscaped + "');" +
+        "  }" +
+        "};";
       }
       Boolean asyncAttr = (Boolean) scriptHtmlTagAttributes.get("async");
       if (asyncAttr != null && asyncAttr) {
@@ -1206,7 +1208,7 @@ final public class InAppWebView extends InputAwareWebView {
   @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
   public void printCurrentPage() {
     // Get a PrintManager instance
-    PrintManager printManager = (PrintManager) Shared.activity.getSystemService(Context.PRINT_SERVICE);
+    PrintManager printManager = (PrintManager) plugin.activity.getSystemService(Context.PRINT_SERVICE);
 
     if (printManager != null) {
       String jobName = getTitle() + " Document";
@@ -1220,10 +1222,6 @@ final public class InAppWebView extends InputAwareWebView {
     } else {
       Log.e(LOG_TAG, "No PrintManager available");
     }
-  }
-
-  public Float getUpdatedScale() {
-    return scale;
   }
 
   @Override
@@ -1246,6 +1244,15 @@ final public class InAppWebView extends InputAwareWebView {
   @Override
   public boolean onTouchEvent(MotionEvent ev) {
     lastTouch = new Point((int) ev.getX(), (int) ev.getY());
+
+    ViewParent parent = getParent();
+    if (parent instanceof PullToRefreshLayout) {
+      PullToRefreshLayout pullToRefreshLayout = (PullToRefreshLayout) parent;
+      if (ev.getActionMasked() == MotionEvent.ACTION_DOWN) {
+        pullToRefreshLayout.setEnabled(false);
+      }
+    }
+
     return super.onTouchEvent(ev);
   }
 
@@ -1255,6 +1262,17 @@ final public class InAppWebView extends InputAwareWebView {
 
     boolean overScrolledHorizontally = canScrollHorizontally() && clampedX;
     boolean overScrolledVertically = canScrollVertically() && clampedY;
+
+    ViewParent parent = getParent();
+    if (parent instanceof PullToRefreshLayout && overScrolledVertically && scrollY <= 10) {
+      PullToRefreshLayout pullToRefreshLayout = (PullToRefreshLayout) parent;
+      // change over scroll mode to OVER_SCROLL_NEVER in order to disable temporarily the glow effect
+      setOverScrollMode(OVER_SCROLL_NEVER);
+      pullToRefreshLayout.setEnabled(pullToRefreshLayout.options.enabled);
+      // reset over scroll mode
+      setOverScrollMode(options.overScrollMode);
+    }
+
     if (overScrolledHorizontally || overScrolledVertically) {
       Map<String, Object> obj = new HashMap<>();
       obj.put("x", scrollX);
@@ -1509,7 +1527,7 @@ final public class InAppWebView extends InputAwareWebView {
         if (floatingContextMenu != null) {
           if (value != null && !value.equalsIgnoreCase("null")) {
             int x = contextMenuPoint.x;
-            int y = (int) ((Float.parseFloat(value) * scale) + (floatingContextMenu.getHeight() / 3.5));
+            int y = (int) ((Float.parseFloat(value) * Util.getPixelDensity(getContext())) + (floatingContextMenu.getHeight() / 3.5));
             contextMenuPoint.y = y;
             onFloatingActionGlobalLayout(x, y);
           } else {
@@ -1667,6 +1685,7 @@ final public class InAppWebView extends InputAwareWebView {
     inAppWebViewClient = null;
     javaScriptBridgeInterface = null;
     inAppWebViewRenderProcessClient = null;
+    plugin = null;
     super.dispose();
   }
 

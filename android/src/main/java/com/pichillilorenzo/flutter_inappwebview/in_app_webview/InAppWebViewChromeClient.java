@@ -8,7 +8,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.AssetFileDescriptor;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
@@ -46,7 +45,6 @@ import com.pichillilorenzo.flutter_inappwebview.in_app_browser.InAppBrowserDeleg
 import com.pichillilorenzo.flutter_inappwebview.InAppWebViewFlutterPlugin;
 import com.pichillilorenzo.flutter_inappwebview.InAppWebView.AndroidInterceptRequestTemplate;
 import com.pichillilorenzo.flutter_inappwebview.R;
-import com.pichillilorenzo.flutter_inappwebview.Shared;
 import com.pichillilorenzo.flutter_inappwebview.types.URLRequest;
 
 import java.io.ByteArrayOutputStream;
@@ -101,20 +99,22 @@ public class InAppWebViewChromeClient extends WebChromeClient implements PluginR
   private WebChromeClient.CustomViewCallback mCustomViewCallback;
   private int mOriginalOrientation;
   private int mOriginalSystemUiVisibility;
+  @Nullable
+  public InAppWebViewFlutterPlugin plugin;
 
-  public InAppWebViewChromeClient(MethodChannel channel, InAppBrowserDelegate inAppBrowserDelegate) {
+  public InAppWebViewChromeClient(final InAppWebViewFlutterPlugin plugin, MethodChannel channel, InAppBrowserDelegate inAppBrowserDelegate) {
     super();
-
+    this.plugin = plugin;
     this.channel = channel;
     this.inAppBrowserDelegate = inAppBrowserDelegate;
     if (this.inAppBrowserDelegate != null) {
       this.inAppBrowserDelegate.getActivityResultListeners().add(this);
     }
 
-    if (Shared.registrar != null)
-      Shared.registrar.addActivityResultListener(this);
+    if (plugin.registrar != null)
+      plugin.registrar.addActivityResultListener(this);
     else
-      Shared.activityPluginBinding.addActivityResultListener(this);
+      plugin.activityPluginBinding.addActivityResultListener(this);
   }
 
   @Override
@@ -124,7 +124,7 @@ public class InAppWebViewChromeClient extends WebChromeClient implements PluginR
 
   @Override
   public void onHideCustomView() {
-    Activity activity = inAppBrowserDelegate != null ? inAppBrowserDelegate.getActivity() : Shared.activity;
+    Activity activity = inAppBrowserDelegate != null ? inAppBrowserDelegate.getActivity() : plugin.activity;
 
     View decorView = getRootView();
     ((FrameLayout) decorView).removeView(this.mCustomView);
@@ -145,7 +145,7 @@ public class InAppWebViewChromeClient extends WebChromeClient implements PluginR
       return;
     }
 
-    Activity activity = inAppBrowserDelegate != null ? inAppBrowserDelegate.getActivity() : Shared.activity;
+    Activity activity = inAppBrowserDelegate != null ? inAppBrowserDelegate.getActivity() : plugin.activity;
 
     View decorView = getRootView();
     this.mCustomView = paramView;
@@ -229,7 +229,7 @@ public class InAppWebViewChromeClient extends WebChromeClient implements PluginR
       }
     };
 
-    Activity activity = inAppBrowserDelegate != null ? inAppBrowserDelegate.getActivity() : Shared.activity;
+    Activity activity = inAppBrowserDelegate != null ? inAppBrowserDelegate.getActivity() : plugin.activity;
 
     AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(activity, R.style.Theme_AppCompat_Dialog_Alert);
     alertDialogBuilder.setMessage(alertMessage);
@@ -322,7 +322,7 @@ public class InAppWebViewChromeClient extends WebChromeClient implements PluginR
       }
     };
 
-    Activity activity = inAppBrowserDelegate != null ? inAppBrowserDelegate.getActivity() : Shared.activity;
+    Activity activity = inAppBrowserDelegate != null ? inAppBrowserDelegate.getActivity() : plugin.activity;
 
     AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(activity, R.style.Theme_AppCompat_Dialog_Alert);
     alertDialogBuilder.setMessage(alertMessage);
@@ -441,7 +441,7 @@ public class InAppWebViewChromeClient extends WebChromeClient implements PluginR
       }
     };
 
-    Activity activity = inAppBrowserDelegate != null ? inAppBrowserDelegate.getActivity() : Shared.activity;
+    Activity activity = inAppBrowserDelegate != null ? inAppBrowserDelegate.getActivity() : plugin.activity;
 
     AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(activity, R.style.Theme_AppCompat_Dialog_Alert);
     alertDialogBuilder.setMessage(alertMessage);
@@ -539,7 +539,7 @@ public class InAppWebViewChromeClient extends WebChromeClient implements PluginR
         }
       };
 
-      Activity activity = inAppBrowserDelegate != null ? inAppBrowserDelegate.getActivity() : Shared.activity;
+      Activity activity = inAppBrowserDelegate != null ? inAppBrowserDelegate.getActivity() : plugin.activity;
 
       AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(activity, R.style.Theme_AppCompat_Dialog_Alert);
       alertDialogBuilder.setMessage(alertMessage);
@@ -755,7 +755,7 @@ public class InAppWebViewChromeClient extends WebChromeClient implements PluginR
   }
 
   protected ViewGroup getRootView() {
-    Activity activity = inAppBrowserDelegate != null ? inAppBrowserDelegate.getActivity() : Shared.activity;
+    Activity activity = inAppBrowserDelegate != null ? inAppBrowserDelegate.getActivity() : plugin.activity;
     return (ViewGroup) activity.findViewById(android.R.id.content);
   }
 
@@ -849,7 +849,7 @@ public class InAppWebViewChromeClient extends WebChromeClient implements PluginR
   }
 
   private boolean isFileNotEmpty(Uri uri) {
-    Activity activity = inAppBrowserDelegate != null ? inAppBrowserDelegate.getActivity() : Shared.activity;
+    Activity activity = inAppBrowserDelegate != null ? inAppBrowserDelegate.getActivity() : plugin.activity;
 
     long length;
     try {
@@ -890,7 +890,7 @@ public class InAppWebViewChromeClient extends WebChromeClient implements PluginR
     }
     chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, extraIntents.toArray(new Parcelable[]{}));
 
-    Activity activity = inAppBrowserDelegate != null ? inAppBrowserDelegate.getActivity() : Shared.activity;
+    Activity activity = inAppBrowserDelegate != null ? inAppBrowserDelegate.getActivity() : plugin.activity;
     if (chooserIntent.resolveActivity(activity.getPackageManager()) != null) {
       activity.startActivityForResult(chooserIntent, PICKER_LEGACY);
     } else {
@@ -918,7 +918,7 @@ public class InAppWebViewChromeClient extends WebChromeClient implements PluginR
     chooserIntent.putExtra(Intent.EXTRA_INTENT, fileSelectionIntent);
     chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, extraIntents.toArray(new Parcelable[]{}));
 
-    Activity activity = inAppBrowserDelegate != null ? inAppBrowserDelegate.getActivity() : Shared.activity;
+    Activity activity = inAppBrowserDelegate != null ? inAppBrowserDelegate.getActivity() : plugin.activity;
     if (chooserIntent.resolveActivity(activity.getPackageManager()) != null) {
       activity.startActivityForResult(chooserIntent, PICKER);
     } else {
@@ -931,7 +931,7 @@ public class InAppWebViewChromeClient extends WebChromeClient implements PluginR
   protected boolean needsCameraPermission() {
     boolean needed = false;
 
-    Activity activity = inAppBrowserDelegate != null ? inAppBrowserDelegate.getActivity() : Shared.activity;
+    Activity activity = inAppBrowserDelegate != null ? inAppBrowserDelegate.getActivity() : plugin.activity;
     PackageManager packageManager = activity.getPackageManager();
     try {
       String[] requestedPermissions = packageManager.getPackageInfo(activity.getApplicationContext().getPackageName(), PackageManager.GET_PERMISSIONS).requestedPermissions;
@@ -1073,7 +1073,7 @@ public class InAppWebViewChromeClient extends WebChromeClient implements PluginR
       return Uri.fromFile(capturedFile);
     }
 
-    Activity activity = inAppBrowserDelegate != null ? inAppBrowserDelegate.getActivity() : Shared.activity;
+    Activity activity = inAppBrowserDelegate != null ? inAppBrowserDelegate.getActivity() : plugin.activity;
     // for versions 6.0+ (23) we use the FileProvider to avoid runtime permissions
     String packageName = activity.getApplicationContext().getPackageName();
     return FileProvider.getUriForFile(activity.getApplicationContext(), packageName + "." + fileProviderAuthorityExtension, capturedFile);
@@ -1103,7 +1103,7 @@ public class InAppWebViewChromeClient extends WebChromeClient implements PluginR
       return new File(storageDir, filename);
     }
 
-    Activity activity = inAppBrowserDelegate != null ? inAppBrowserDelegate.getActivity() : Shared.activity;
+    Activity activity = inAppBrowserDelegate != null ? inAppBrowserDelegate.getActivity() : plugin.activity;
     File storageDir = activity.getApplicationContext().getExternalFilesDir(null);
     return File.createTempFile(prefix, suffix, storageDir);
   }
@@ -1162,12 +1162,13 @@ public class InAppWebViewChromeClient extends WebChromeClient implements PluginR
   }
 
   public void dispose() {
-    if (Shared.activityPluginBinding != null) {
-      Shared.activityPluginBinding.removeActivityResultListener(this);
+    if (plugin != null && plugin.activityPluginBinding != null) {
+      plugin.activityPluginBinding.removeActivityResultListener(this);
     }
     if (inAppBrowserDelegate != null) {
       inAppBrowserDelegate.getActivityResultListeners().clear();
       inAppBrowserDelegate = null;
     }
+    plugin = null;
   }
 }
