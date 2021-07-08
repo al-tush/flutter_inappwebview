@@ -4088,12 +4088,12 @@ class CreateWindowAction extends NavigationAction {
   IOSWKWindowFeatures? iosWindowFeatures;
 
   ///Indicates that the request is matches to [AndroidInAppWebViewOptions.interceptRequestTemplates] and must be intercepted. Available only on Android.
-  bool androidRequestIntercepted;
+  bool? androidRequestIntercepted;
 
   CreateWindowAction({
     required this.windowId,
     this.androidIsDialog,
-    required this.androidRequestIntercepted,
+    this.androidRequestIntercepted,
     this.iosWindowFeatures,
     required URLRequest request,
     required bool isForMainFrame,
