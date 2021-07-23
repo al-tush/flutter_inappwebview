@@ -11,6 +11,8 @@ import WebKit
 
 public class InAppWebView: WKWebView, UIScrollViewDelegate, WKUIDelegate, WKNavigationDelegate, WKScriptMessageHandler, UIGestureRecognizerDelegate, PullToRefreshDelegate {
 
+    public static var externalLogger: ((_ isError: Bool, _ msg: String) -> Void)?
+    
     var windowId: Int64?
     var windowCreated = false
     var inAppBrowserDelegate: InAppBrowserDelegate?
@@ -101,6 +103,18 @@ public class InAppWebView: WKWebView, UIScrollViewDelegate, WKUIDelegate, WKNavi
         super.init(coder: aDecoder)!
     }
 
+    private static func logDebug(_ msg: String, file: String = #file, function: String = #function, line: Int = #line) {
+        let txt = "[\(file).\(line):\(function)] \(msg)"
+        print(txt)
+        InAppWebView.externalLogger?(false, txt)
+    }
+
+    private static func logError(_ msg: String, file: String = #file, function: String = #function, line: Int = #line) {
+        let txt = "[\(file).\(line):\(function)] \(msg)"
+        print(txt)
+        InAppWebView.externalLogger?(true, txt)
+    }
+    
     public func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
         return true
     }
@@ -172,7 +186,7 @@ public class InAppWebView: WKWebView, UIScrollViewDelegate, WKUIDelegate, WKNavi
 
         evaluateJavaScript("window.\(JAVASCRIPT_BRIDGE_NAME)._findElementsAtPoint(\(touchLocation.x),\(touchLocation.y))", completionHandler: {(value, error) in
             if error != nil {
-                print("Long press gesture recognizer error: \(error?.localizedDescription ?? "")")
+                InAppWebView.logError("Long press gesture recognizer error: \(error?.localizedDescription ?? "")")
             } else if let value = value as? [String: Any?] {
                 let hitTestResult = HitTestResult.fromMap(map: value)!
                 self.nativeLoupeGesture = self.gestureRecognizerWithDescriptionFragment("action=loupeGesture:")
@@ -556,7 +570,7 @@ public class InAppWebView: WKWebView, UIScrollViewDelegate, WKUIDelegate, WKNavi
             if configuration.preferences.javaScriptEnabled {
                 self.evaluateJavaScript("window.\(JAVASCRIPT_BRIDGE_NAME)._findElementsAtPoint(\(lastLongPressTouhLocation.x),\(lastLongPressTouhLocation.y))", completionHandler: {(value, error) in
                     if error != nil {
-                        print("Long press gesture recognizer error: \(error?.localizedDescription ?? "")")
+                        InAppWebView.logError("Long press gesture recognizer error: \(error?.localizedDescription ?? "")")
                     } else if var value = value as? [String: Any?] {
                         value["type"] = value["type"] as? Int
                         self.channel?.invokeMethod("onCreateContextMenu", arguments: value)
@@ -701,7 +715,7 @@ public class InAppWebView: WKWebView, UIScrollViewDelegate, WKUIDelegate, WKNavi
                 completionHandler(data)
                 return
             case .failure(let error):
-                print(error.localizedDescription)
+                InAppWebView.logError(error.localizedDescription)
                 completionHandler(nil)
                 return
             }
@@ -716,7 +730,7 @@ public class InAppWebView: WKWebView, UIScrollViewDelegate, WKUIDelegate, WKNavi
                 dataCompletionHandler(data)
                 return
             case .failure(let error):
-                print(error.localizedDescription)
+                InAppWebView.logError(error.localizedDescription)
                 dataCompletionHandler(nil)
                 return
             }
@@ -752,7 +766,7 @@ public class InAppWebView: WKWebView, UIScrollViewDelegate, WKUIDelegate, WKNavi
                     completionHandler(localUrl.path)
                 } catch {
                     // Catch any errors
-                    print(error.localizedDescription)
+                    InAppWebView.logError(error.localizedDescription)
                     completionHandler(nil)
                 }
             } else {
@@ -1083,13 +1097,13 @@ public class InAppWebView: WKWebView, UIScrollViewDelegate, WKUIDelegate, WKNavi
                         forIdentifier: "ContentBlockingRules",
                         encodedContentRuleList: blockRules) { (contentRuleList, error) in
                             if let error = error {
-                                print(error.localizedDescription)
+                                InAppWebView.logError(error.localizedDescription)
                                 return
                             }
                             self.configuration.userContentController.add(contentRuleList!)
                     }
                 } catch {
-                    print(error.localizedDescription)
+                    InAppWebView.logError(error.localizedDescription)
                 }
             }
         }
@@ -1148,7 +1162,7 @@ public class InAppWebView: WKWebView, UIScrollViewDelegate, WKUIDelegate, WKNavi
             do {
                 try FileManager.default.removeItem(atPath: libraryPath)
             } catch {
-                print("can't clear cache")
+                InAppWebView.logError("can't clear cache")
             }
             URLCache.shared.removeAllCachedResponses()
         }
@@ -1467,7 +1481,7 @@ public class InAppWebView: WKWebView, UIScrollViewDelegate, WKUIDelegate, WKNavi
             if let useShouldOverrideUrlLoading = options?.useShouldOverrideUrlLoading, useShouldOverrideUrlLoading {
                 shouldOverrideUrlLoading(navigationAction: navigationAction, result: { (result) -> Void in
                     if result is FlutterError {
-                        print((result as! FlutterError).message ?? "")
+                        InAppWebView.logError((result as! FlutterError).message ?? "")
                         decisionHandler(.allow)
                         return
                     }
@@ -1510,7 +1524,7 @@ public class InAppWebView: WKWebView, UIScrollViewDelegate, WKUIDelegate, WKNavi
         if useOnNavigationResponse != nil, useOnNavigationResponse! {
             onNavigationResponse(navigationResponse: navigationResponse, result: { (result) -> Void in
                 if result is FlutterError {
-                    print((result as! FlutterError).message ?? "")
+                    InAppWebView.logError((result as! FlutterError).message ?? "")
                     decisionHandler(.allow)
                     return
                 }
@@ -1630,7 +1644,7 @@ public class InAppWebView: WKWebView, UIScrollViewDelegate, WKUIDelegate, WKNavi
             let port = challenge.protectionSpace.port
             onReceivedHttpAuthRequest(challenge: challenge, result: {(result) -> Void in
                 if result is FlutterError {
-                    print((result as! FlutterError).message ?? "")
+                    InAppWebView.logError((result as! FlutterError).message ?? "")
                     completionHandler(.performDefaultHandling, nil)
                 }
                 else if (result as? NSObject) == FlutterMethodNotImplemented {
@@ -1700,7 +1714,7 @@ public class InAppWebView: WKWebView, UIScrollViewDelegate, WKUIDelegate, WKNavi
 
             onReceivedServerTrustAuthRequest(challenge: challenge, result: {(result) -> Void in
                 if result is FlutterError {
-                    print((result as! FlutterError).message ?? "")
+                    InAppWebView.logError((result as! FlutterError).message ?? "")
                     completionHandler(.performDefaultHandling, nil)
                 }
                 else if (result as? NSObject) == FlutterMethodNotImplemented {
@@ -1736,7 +1750,7 @@ public class InAppWebView: WKWebView, UIScrollViewDelegate, WKUIDelegate, WKNavi
         else if challenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodClientCertificate {
             onReceivedClientCertRequest(challenge: challenge, result: {(result) -> Void in
                 if result is FlutterError {
-                    print((result as! FlutterError).message ?? "")
+                    InAppWebView.logError((result as! FlutterError).message ?? "")
                     completionHandler(.performDefaultHandling, nil)
                 }
                 else if (result as? NSObject) == FlutterMethodNotImplemented {
@@ -1770,7 +1784,7 @@ public class InAppWebView: WKWebView, UIScrollViewDelegate, WKUIDelegate, WKNavi
                                         completionHandler(.performDefaultHandling, nil)
                                     }
                                 } catch {
-                                    print(error.localizedDescription)
+                                    InAppWebView.logError(error.localizedDescription)
                                     completionHandler(.performDefaultHandling, nil)
                                 }
                                 
@@ -1826,9 +1840,9 @@ public class InAppWebView: WKWebView, UIScrollViewDelegate, WKUIDelegate, WKNavi
                 identityAndTrust = IdentityAndTrust(identityRef: secIdentityRef, trust: trustRef, certArray:  chainPointer!);
             }
         } else {
-            print("Security Error: " + securityError.description)
+            InAppWebView.logError("Security Error: " + securityError.description)
             if #available(iOS 11.3, *) {
-                print(SecCopyErrorMessageString(securityError,nil) ?? "")
+                InAppWebView.logError(SecCopyErrorMessageString(securityError,nil) as String? ?? "")
             }
         }
         return identityAndTrust;
@@ -1861,7 +1875,7 @@ public class InAppWebView: WKWebView, UIScrollViewDelegate, WKUIDelegate, WKNavi
         
         onJsAlert(frame: frame, message: message, result: {(result) -> Void in
             if result is FlutterError {
-                print((result as! FlutterError).message ?? "")
+                InAppWebView.logError((result as! FlutterError).message ?? "")
                 completionHandler()
             }
             else if (result as? NSObject) == FlutterMethodNotImplemented {
@@ -1923,7 +1937,7 @@ public class InAppWebView: WKWebView, UIScrollViewDelegate, WKUIDelegate, WKNavi
 
         onJsConfirm(frame: frame, message: message, result: {(result) -> Void in
             if result is FlutterError {
-                print((result as! FlutterError).message ?? "")
+                InAppWebView.logError((result as! FlutterError).message ?? "")
                 completionHandler(false)
             }
             else if (result as? NSObject) == FlutterMethodNotImplemented {
@@ -1999,7 +2013,7 @@ public class InAppWebView: WKWebView, UIScrollViewDelegate, WKUIDelegate, WKNavi
                  completionHandler: @escaping (String?) -> Void) {
         onJsPrompt(frame: frame, message: message, defaultValue: defaultValue, result: {(result) -> Void in
             if result is FlutterError {
-                print((result as! FlutterError).message ?? "")
+                InAppWebView.logError((result as! FlutterError).message ?? "")
                 completionHandler(nil)
             }
             else if (result as? NSObject) == FlutterMethodNotImplemented {
@@ -2121,7 +2135,7 @@ public class InAppWebView: WKWebView, UIScrollViewDelegate, WKUIDelegate, WKNavi
 
         channel?.invokeMethod("onCreateWindow", arguments: arguments, result: { (result) -> Void in
             if result is FlutterError {
-                print((result as! FlutterError).message ?? "")
+                InAppWebView.logError((result as! FlutterError).message ?? "")
                 if InAppWebView.windowWebViews[windowId] != nil {
                     InAppWebView.windowWebViews.removeValue(forKey: windowId)
                 }
@@ -2158,7 +2172,7 @@ public class InAppWebView: WKWebView, UIScrollViewDelegate, WKUIDelegate, WKNavi
         
         shouldAllowDeprecatedTLS(challenge: challenge, result: {(result) -> Void in
             if result is FlutterError {
-                print((result as! FlutterError).message ?? "")
+                InAppWebView.logError((result as! FlutterError).message ?? "")
                 decisionHandler(false)
             }
             else if (result as? NSObject) == FlutterMethodNotImplemented {
@@ -2210,7 +2224,7 @@ public class InAppWebView: WKWebView, UIScrollViewDelegate, WKUIDelegate, WKNavi
 //    public func webView(_ webView: WKWebView,
 //                        contextMenuConfigurationForElement elementInfo: WKContextMenuElementInfo,
 //                        completionHandler: @escaping (UIContextMenuConfiguration?) -> Void) {
-//        print("contextMenuConfigurationForElement")
+//        logError("contextMenuConfigurationForElement")
 //        let actionProvider: UIContextMenuActionProvider = { _ in
 //            let editMenu = UIMenu(title: "Edit...", children: [
 //                UIAction(title: "Copy") { action in
@@ -2232,7 +2246,7 @@ public class InAppWebView: WKWebView, UIScrollViewDelegate, WKUIDelegate, WKNavi
 //        completionHandler(nil)
 ////        onContextMenuConfigurationForElement(linkURL: elementInfo.linkURL?.absoluteString, result: nil/*{(result) -> Void in
 ////            if result is FlutterError {
-////                print((result as! FlutterError).message ?? "")
+////                logError((result as! FlutterError).message ?? "")
 ////            }
 ////            else if (result as? NSObject) == FlutterMethodNotImplemented {
 ////                completionHandler(nil)
@@ -2261,8 +2275,8 @@ public class InAppWebView: WKWebView, UIScrollViewDelegate, WKUIDelegate, WKNavi
 //    @available(iOS 13.0, *)
 //    public func webView(_ webView: WKWebView,
 //                        contextMenuDidEndForElement elementInfo: WKContextMenuElementInfo) {
-//        print("contextMenuDidEndForElement")
-//        print(elementInfo)
+//        logError("contextMenuDidEndForElement")
+//        logError(elementInfo)
 //        //onContextMenuDidEndForElement(linkURL: elementInfo.linkURL?.absoluteString)
 //    }
 //
@@ -2270,11 +2284,11 @@ public class InAppWebView: WKWebView, UIScrollViewDelegate, WKUIDelegate, WKNavi
 //    public func webView(_ webView: WKWebView,
 //                        contextMenuForElement elementInfo: WKContextMenuElementInfo,
 //                        willCommitWithAnimator animator: UIContextMenuInteractionCommitAnimating) {
-//        print("willCommitWithAnimator")
-//        print(elementInfo)
+//        logError("willCommitWithAnimator")
+//        logError(elementInfo)
 ////        onWillCommitWithAnimator(linkURL: elementInfo.linkURL?.absoluteString, result: nil/*{(result) -> Void in
 ////            if result is FlutterError {
-////                print((result as! FlutterError).message ?? "")
+////                logError((result as! FlutterError).message ?? "")
 ////            }
 ////            else if (result as? NSObject) == FlutterMethodNotImplemented {
 ////
@@ -2303,8 +2317,8 @@ public class InAppWebView: WKWebView, UIScrollViewDelegate, WKUIDelegate, WKNavi
 //    @available(iOS 13.0, *)
 //    public func webView(_ webView: WKWebView,
 //                        contextMenuWillPresentForElement elementInfo: WKContextMenuElementInfo) {
-//        print("contextMenuWillPresentForElement")
-//        print(elementInfo.linkURL)
+//        logError("contextMenuWillPresentForElement")
+//        logError(elementInfo.linkURL)
 //        //onContextMenuWillPresentForElement(linkURL: elementInfo.linkURL?.absoluteString)
 //    }
     
@@ -2456,7 +2470,7 @@ public class InAppWebView: WKWebView, UIScrollViewDelegate, WKUIDelegate, WKNavi
         // invoke flutter javascript handler and send back flutter data as a JSON Object to javascript
         channel?.invokeMethod("onCallJsHandler", arguments: arguments, result: {(result) -> Void in
             if result is FlutterError {
-                print((result as! FlutterError).message ?? "")
+                InAppWebView.logError((result as! FlutterError).message ?? "")
             }
             else if (result as? NSObject) == FlutterMethodNotImplemented {}
             else {
@@ -2702,9 +2716,9 @@ if(window.\(JAVASCRIPT_BRIDGE_NAME)[\(_callHandlerID)] != null) {
         let completionHandler: UIPrintInteractionController.CompletionHandler = { (printController, completed, error) in
             if !completed {
                 if let e = error {
-                    print("[PRINT] Failed: \(e.localizedDescription)")
+                    InAppWebView.logError("[PRINT] Failed: \(e.localizedDescription)")
                 } else {
-                    print("[PRINT] Canceled")
+                    InAppWebView.logDebug("[PRINT] Canceled")
                 }
             }
             if let callback = printCompletionHandler {
@@ -2740,7 +2754,7 @@ if(window.\(JAVASCRIPT_BRIDGE_NAME)[\(_callHandlerID)] != null) {
         if configuration.preferences.javaScriptEnabled, let lastTouchLocation = lastTouchPoint {
             self.evaluateJavaScript("window.\(JAVASCRIPT_BRIDGE_NAME)._findElementsAtPoint(\(lastTouchLocation.x),\(lastTouchLocation.y))", completionHandler: {(value, error) in
                 if error != nil {
-                    print("getHitTestResult error: \(error?.localizedDescription ?? "")")
+                    InAppWebView.logError("getHitTestResult error: \(error?.localizedDescription ?? "")")
                     completionHandler(HitTestResult(type: .unknownType, extra: nil))
                 } else if let value = value as? [String: Any?] {
                     let hitTestResult = HitTestResult.fromMap(map: value)!
@@ -2939,7 +2953,7 @@ if(window.\(JAVASCRIPT_BRIDGE_NAME)[\(_callHandlerID)] != null) {
     }
     
     deinit {
-        print("InAppWebView - dealloc")
+        InAppWebView.logDebug("InAppWebView - dealloc")
     }
     
 //    var accessoryView: UIView?
