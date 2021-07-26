@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/src/util.dart';
 
 import '../context_menu.dart';
+import '../external_logger.dart';
 import '../types.dart';
 import 'webview.dart';
 import 'in_app_webview_controller.dart';
@@ -115,15 +116,20 @@ class HeadlessInAppWebView implements WebView {
   }
 
   Future<dynamic> handleMethod(MethodCall call) async {
-    switch (call.method) {
-      case "onWebViewCreated":
-        pullToRefreshController?.initMethodChannel(id);
-        if (onWebViewCreated != null) {
-          onWebViewCreated!(webViewController);
-        }
-        break;
-      default:
-        throw UnimplementedError("Unimplemented ${call.method} method");
+    try {
+      switch (call.method) {
+        case "onWebViewCreated":
+          pullToRefreshController?.initMethodChannel(id);
+          if (onWebViewCreated != null) {
+            onWebViewCreated!(webViewController);
+          }
+          break;
+        default:
+          throw UnimplementedError("Unimplemented ${call.method} method");
+      }
+    } catch (e) {
+      ExternalLogger.onException(e);
+      rethrow;
     }
     return null;
   }

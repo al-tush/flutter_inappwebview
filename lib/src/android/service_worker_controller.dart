@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/services.dart';
 import 'webview_feature.dart';
+import '../external_logger.dart';
 import '../types.dart';
 
 ///Class that represents an Android-specific class that manages Service Workers used by [WebView].
@@ -27,27 +28,31 @@ class AndroidServiceWorkerController {
   }
 
   static Future<dynamic> _handleMethod(MethodCall call) async {
-    AndroidServiceWorkerController controller =
-        AndroidServiceWorkerController.instance();
-    AndroidServiceWorkerClient? serviceWorkerClient =
-        controller.serviceWorkerClient;
+    try {
+      AndroidServiceWorkerController controller =
+      AndroidServiceWorkerController.instance();
+      AndroidServiceWorkerClient? serviceWorkerClient =
+          controller.serviceWorkerClient;
 
-    switch (call.method) {
-      case "shouldInterceptRequest":
-        if (serviceWorkerClient != null &&
-            serviceWorkerClient.shouldInterceptRequest != null) {
-          Map<String, dynamic> arguments =
-              call.arguments.cast<String, dynamic>();
-          WebResourceRequest request = WebResourceRequest.fromMap(arguments)!;
+      switch (call.method) {
+        case "shouldInterceptRequest":
+          if (serviceWorkerClient != null &&
+              serviceWorkerClient.shouldInterceptRequest != null) {
+            Map<String, dynamic> arguments =
+            call.arguments.cast<String, dynamic>();
+            WebResourceRequest request = WebResourceRequest.fromMap(arguments)!;
 
-          return (await serviceWorkerClient.shouldInterceptRequest!(request))
-              ?.toMap();
-        }
-        break;
-      default:
-        throw UnimplementedError("Unimplemented ${call.method} method");
+            return (await serviceWorkerClient.shouldInterceptRequest!(request))
+                ?.toMap();
+          }
+          break;
+        default:
+          throw UnimplementedError("Unimplemented ${call.method} method");
+      }
+    } catch (e) {
+      ExternalLogger.onException(e);
+      rethrow;
     }
-
     return null;
   }
 

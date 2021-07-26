@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_inappwebview/src/util.dart';
 
+import '../external_logger.dart';
 import '../context_menu.dart';
 import '../types.dart';
 
@@ -76,18 +77,23 @@ class InAppBrowser {
   }
 
   Future<dynamic> handleMethod(MethodCall call) async {
-    switch (call.method) {
-      case "onBrowserCreated":
-        this._isOpened = true;
-        this.pullToRefreshController?.initMethodChannel(id);
-        onBrowserCreated();
-        break;
-      case "onExit":
-        this._isOpened = false;
-        onExit();
-        break;
-      default:
-        return webViewController.handleMethod(call);
+    try {
+      switch (call.method) {
+        case "onBrowserCreated":
+          this._isOpened = true;
+          this.pullToRefreshController?.initMethodChannel(id);
+          onBrowserCreated();
+          break;
+        case "onExit":
+          this._isOpened = false;
+          onExit();
+          break;
+        default:
+          return webViewController.handleMethod(call);
+      }
+    } catch (e) {
+      ExternalLogger.onException(e);
+      rethrow;
     }
   }
 

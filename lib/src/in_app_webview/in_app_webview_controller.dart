@@ -14,6 +14,7 @@ import 'android/in_app_webview_controller.dart';
 import 'ios/in_app_webview_controller.dart';
 
 import '../context_menu.dart';
+import '../external_logger.dart';
 import '../types.dart';
 import '../in_app_browser/in_app_browser.dart';
 import '../web_storage/web_storage.dart';
@@ -101,802 +102,837 @@ class InAppWebViewController {
   }
 
   Future<dynamic> handleMethod(MethodCall call) async {
-    switch (call.method) {
-      case "onLoadStart":
-        _injectedScriptsFromURL.clear();
-        if ((_webview != null && _webview!.onLoadStart != null) ||
-            _inAppBrowser != null) {
-          String? url = call.arguments["url"];
-          Uri? uri = url != null ? Uri.parse(url) : null;
-          if (_webview != null && _webview!.onLoadStart != null)
-            _webview!.onLoadStart!(this, uri);
-          else
-            _inAppBrowser!.onLoadStart(uri);
-        }
-        break;
-      case "onLoadStop":
-        if ((_webview != null && _webview!.onLoadStop != null) ||
-            _inAppBrowser != null) {
-          String? url = call.arguments["url"];
-          Uri? uri = url != null ? Uri.parse(url) : null;
-          if (_webview != null && _webview!.onLoadStop != null)
-            _webview!.onLoadStop!(this, uri);
-          else
-            _inAppBrowser!.onLoadStop(uri);
-        }
-        break;
-      case "onLoadError":
-        if ((_webview != null && _webview!.onLoadError != null) ||
-            _inAppBrowser != null) {
-          String? url = call.arguments["url"];
-          int code = call.arguments["code"];
-          String message = call.arguments["message"];
-          Uri? uri = url != null ? Uri.parse(url) : null;
-          if (_webview != null && _webview!.onLoadError != null)
-            _webview!.onLoadError!(this, uri, code, message);
-          else
-            _inAppBrowser!.onLoadError(uri, code, message);
-        }
-        break;
-      case "onLoadHttpError":
-        if ((_webview != null && _webview!.onLoadHttpError != null) ||
-            _inAppBrowser != null) {
-          String? url = call.arguments["url"];
-          int statusCode = call.arguments["statusCode"];
-          String description = call.arguments["description"];
-          Uri? uri = url != null ? Uri.parse(url) : null;
-          if (_webview != null && _webview!.onLoadHttpError != null)
-            _webview!.onLoadHttpError!(this, uri, statusCode, description);
-          else
-            _inAppBrowser!.onLoadHttpError(uri, statusCode, description);
-        }
-        break;
-      case "onProgressChanged":
-        if ((_webview != null && _webview!.onProgressChanged != null) ||
-            _inAppBrowser != null) {
-          int progress = call.arguments["progress"];
-          if (_webview != null && _webview!.onProgressChanged != null)
-            _webview!.onProgressChanged!(this, progress);
-          else
-            _inAppBrowser!.onProgressChanged(progress);
-        }
-        break;
-      case "shouldOverrideUrlLoading":
-        if ((_webview != null && _webview!.shouldOverrideUrlLoading != null) ||
-            _inAppBrowser != null) {
-          Map<String, dynamic> arguments =
-              call.arguments.cast<String, dynamic>();
-          NavigationAction navigationAction =
-              NavigationAction.fromMap(arguments)!;
+    try {
+      switch (call.method) {
+        case "onLoadStart":
+          _injectedScriptsFromURL.clear();
+          if ((_webview != null && _webview!.onLoadStart != null) ||
+              _inAppBrowser != null) {
+            String? url = call.arguments["url"];
+            Uri? uri = url != null ? Uri.parse(url) : null;
+            if (_webview != null && _webview!.onLoadStart != null)
+              _webview!.onLoadStart!(this, uri);
+            else
+              _inAppBrowser!.onLoadStart(uri);
+          }
+          break;
+        case "onLoadStop":
+          if ((_webview != null && _webview!.onLoadStop != null) ||
+              _inAppBrowser != null) {
+            String? url = call.arguments["url"];
+            Uri? uri = url != null ? Uri.parse(url) : null;
+            if (_webview != null && _webview!.onLoadStop != null)
+              _webview!.onLoadStop!(this, uri);
+            else
+              _inAppBrowser!.onLoadStop(uri);
+          }
+          break;
+        case "onLoadError":
+          if ((_webview != null && _webview!.onLoadError != null) ||
+              _inAppBrowser != null) {
+            String? url = call.arguments["url"];
+            int code = call.arguments["code"];
+            String message = call.arguments["message"];
+            Uri? uri = url != null ? Uri.parse(url) : null;
+            if (_webview != null && _webview!.onLoadError != null)
+              _webview!.onLoadError!(this, uri, code, message);
+            else
+              _inAppBrowser!.onLoadError(uri, code, message);
+          }
+          break;
+        case "onLoadHttpError":
+          if ((_webview != null && _webview!.onLoadHttpError != null) ||
+              _inAppBrowser != null) {
+            String? url = call.arguments["url"];
+            int statusCode = call.arguments["statusCode"];
+            String description = call.arguments["description"];
+            Uri? uri = url != null ? Uri.parse(url) : null;
+            if (_webview != null && _webview!.onLoadHttpError != null)
+              _webview!.onLoadHttpError!(this, uri, statusCode, description);
+            else
+              _inAppBrowser!.onLoadHttpError(uri, statusCode, description);
+          }
+          break;
+        case "onProgressChanged":
+          if ((_webview != null && _webview!.onProgressChanged != null) ||
+              _inAppBrowser != null) {
+            int progress = call.arguments["progress"];
+            if (_webview != null && _webview!.onProgressChanged != null)
+              _webview!.onProgressChanged!(this, progress);
+            else
+              _inAppBrowser!.onProgressChanged(progress);
+          }
+          break;
+        case "shouldOverrideUrlLoading":
+          if ((_webview != null &&
+              _webview!.shouldOverrideUrlLoading != null) ||
+              _inAppBrowser != null) {
+            Map<String, dynamic> arguments =
+            call.arguments.cast<String, dynamic>();
+            NavigationAction navigationAction =
+            NavigationAction.fromMap(arguments)!;
 
-          if (_webview != null && _webview!.shouldOverrideUrlLoading != null)
-            return (await _webview!.shouldOverrideUrlLoading!(
-                    this, navigationAction))
-                ?.toMap();
-          return (await _inAppBrowser!
-                  .shouldOverrideUrlLoading(navigationAction))
-              ?.toMap();
-        }
-        break;
-      case "onConsoleMessage":
-        if ((_webview != null && _webview!.onConsoleMessage != null) ||
-            _inAppBrowser != null) {
-          Map<String, dynamic> arguments =
-              call.arguments.cast<String, dynamic>();
-          ConsoleMessage consoleMessage = ConsoleMessage.fromMap(arguments)!;
-          if (_webview != null && _webview!.onConsoleMessage != null)
-            _webview!.onConsoleMessage!(this, consoleMessage);
-          else
-            _inAppBrowser!.onConsoleMessage(consoleMessage);
-        }
-        break;
-      case "onScrollChanged":
-        if ((_webview != null && _webview!.onScrollChanged != null) ||
-            _inAppBrowser != null) {
-          int x = call.arguments["x"];
-          int y = call.arguments["y"];
-          if (_webview != null && _webview!.onScrollChanged != null)
-            _webview!.onScrollChanged!(this, x, y);
-          else
-            _inAppBrowser!.onScrollChanged(x, y);
-        }
-        break;
-      case "onDownloadStart":
-        if ((_webview != null && _webview!.onDownloadStart != null) ||
-            _inAppBrowser != null) {
-          String url = call.arguments["url"];
-          Uri uri = Uri.parse(url);
-          if (_webview != null && _webview!.onDownloadStart != null)
-            _webview!.onDownloadStart!(this, uri);
-          else
-            _inAppBrowser!.onDownloadStart(uri);
-        }
-        break;
-      case "onLoadResourceCustomScheme":
-        if ((_webview != null &&
-                _webview!.onLoadResourceCustomScheme != null) ||
-            _inAppBrowser != null) {
-          String url = call.arguments["url"];
-          Uri uri = Uri.parse(url);
-          if (_webview != null && _webview!.onLoadResourceCustomScheme != null)
-            return (await _webview!.onLoadResourceCustomScheme!(this, uri))
-                ?.toMap();
-          else
-            return (await _inAppBrowser!.onLoadResourceCustomScheme(uri))
-                ?.toMap();
-        }
-        break;
-      case "onCreateWindow":
-        if ((_webview != null && _webview!.onCreateWindow != null) ||
-            _inAppBrowser != null) {
-          Map<String, dynamic> arguments =
-              call.arguments.cast<String, dynamic>();
-          CreateWindowAction createWindowAction =
-              CreateWindowAction.fromMap(arguments)!;
-
-          if (_webview != null && _webview!.onCreateWindow != null)
-            return await _webview!.onCreateWindow!(this, createWindowAction);
-          else
-            return await _inAppBrowser!.onCreateWindow(createWindowAction);
-        }
-        break;
-      case "onCloseWindow":
-        if (_webview != null && _webview!.onCloseWindow != null)
-          _webview!.onCloseWindow!(this);
-        else if (_inAppBrowser != null) _inAppBrowser!.onCloseWindow();
-        break;
-      case "onTitleChanged":
-        if ((_webview != null && _webview!.onTitleChanged != null) ||
-            _inAppBrowser != null) {
-          String? title = call.arguments["title"];
-          if (_webview != null && _webview!.onTitleChanged != null)
-            _webview!.onTitleChanged!(this, title);
-          else
-            _inAppBrowser!.onTitleChanged(title);
-        }
-        break;
-      case "onGeolocationPermissionsShowPrompt":
-        if ((_webview != null &&
-                _webview!.androidOnGeolocationPermissionsShowPrompt != null) ||
-            _inAppBrowser != null) {
-          String origin = call.arguments["origin"];
-          if (_webview != null &&
-              _webview!.androidOnGeolocationPermissionsShowPrompt != null)
-            return (await _webview!.androidOnGeolocationPermissionsShowPrompt!(
-                    this, origin))
-                ?.toMap();
-          else
+            if (_webview != null && _webview!.shouldOverrideUrlLoading != null)
+              return (await _webview!.shouldOverrideUrlLoading!(
+                  this, navigationAction))
+                  ?.toMap();
             return (await _inAppBrowser!
-                    .androidOnGeolocationPermissionsShowPrompt(origin))
+                .shouldOverrideUrlLoading(navigationAction))
                 ?.toMap();
-        }
-        break;
-      case "onGeolocationPermissionsHidePrompt":
-        if (_webview != null &&
-            _webview!.androidOnGeolocationPermissionsHidePrompt != null)
-          _webview!.androidOnGeolocationPermissionsHidePrompt!(this);
-        else if (_inAppBrowser != null)
-          _inAppBrowser!.androidOnGeolocationPermissionsHidePrompt();
-        break;
-      case "shouldInterceptRequest":
-        if ((_webview != null &&
-                _webview!.androidShouldInterceptRequest != null) ||
-            _inAppBrowser != null) {
-          Map<String, dynamic> arguments =
-              call.arguments.cast<String, dynamic>();
-          WebResourceRequest request = WebResourceRequest.fromMap(arguments)!;
+          }
+          break;
+        case "onConsoleMessage":
+          if ((_webview != null && _webview!.onConsoleMessage != null) ||
+              _inAppBrowser != null) {
+            Map<String, dynamic> arguments =
+            call.arguments.cast<String, dynamic>();
+            ConsoleMessage consoleMessage = ConsoleMessage.fromMap(arguments)!;
+            if (_webview != null && _webview!.onConsoleMessage != null)
+              _webview!.onConsoleMessage!(this, consoleMessage);
+            else
+              _inAppBrowser!.onConsoleMessage(consoleMessage);
+          }
+          break;
+        case "onScrollChanged":
+          if ((_webview != null && _webview!.onScrollChanged != null) ||
+              _inAppBrowser != null) {
+            int x = call.arguments["x"];
+            int y = call.arguments["y"];
+            if (_webview != null && _webview!.onScrollChanged != null)
+              _webview!.onScrollChanged!(this, x, y);
+            else
+              _inAppBrowser!.onScrollChanged(x, y);
+          }
+          break;
+        case "onDownloadStart":
+          if ((_webview != null && _webview!.onDownloadStart != null) ||
+              _inAppBrowser != null) {
+            String url = call.arguments["url"];
+            Uri uri = Uri.parse(url);
+            if (_webview != null && _webview!.onDownloadStart != null)
+              _webview!.onDownloadStart!(this, uri);
+            else
+              _inAppBrowser!.onDownloadStart(uri);
+          }
+          break;
+        case "onLoadResourceCustomScheme":
+          if ((_webview != null &&
+              _webview!.onLoadResourceCustomScheme != null) ||
+              _inAppBrowser != null) {
+            String url = call.arguments["url"];
+            Uri uri = Uri.parse(url);
+            if (_webview != null &&
+                _webview!.onLoadResourceCustomScheme != null)
+              return (await _webview!.onLoadResourceCustomScheme!(this, uri))
+                  ?.toMap();
+            else
+              return (await _inAppBrowser!.onLoadResourceCustomScheme(uri))
+                  ?.toMap();
+          }
+          break;
+        case "onCreateWindow":
+          if ((_webview != null && _webview!.onCreateWindow != null) ||
+              _inAppBrowser != null) {
+            Map<String, dynamic> arguments =
+            call.arguments.cast<String, dynamic>();
+            CreateWindowAction createWindowAction =
+            CreateWindowAction.fromMap(arguments)!;
 
+            if (_webview != null && _webview!.onCreateWindow != null)
+              return await _webview!.onCreateWindow!(this, createWindowAction);
+            else
+              return await _inAppBrowser!.onCreateWindow(createWindowAction);
+          }
+          break;
+        case "onCloseWindow":
+          if (_webview != null && _webview!.onCloseWindow != null)
+            _webview!.onCloseWindow!(this);
+          else if (_inAppBrowser != null) _inAppBrowser!.onCloseWindow();
+          break;
+        case "onTitleChanged":
+          if ((_webview != null && _webview!.onTitleChanged != null) ||
+              _inAppBrowser != null) {
+            String? title = call.arguments["title"];
+            if (_webview != null && _webview!.onTitleChanged != null)
+              _webview!.onTitleChanged!(this, title);
+            else
+              _inAppBrowser!.onTitleChanged(title);
+          }
+          break;
+        case "onGeolocationPermissionsShowPrompt":
+          if ((_webview != null &&
+              _webview!.androidOnGeolocationPermissionsShowPrompt != null) ||
+              _inAppBrowser != null) {
+            String origin = call.arguments["origin"];
+            if (_webview != null &&
+                _webview!.androidOnGeolocationPermissionsShowPrompt != null)
+              return (await _webview!
+                  .androidOnGeolocationPermissionsShowPrompt!(
+                  this, origin))
+                  ?.toMap();
+            else
+              return (await _inAppBrowser!
+                  .androidOnGeolocationPermissionsShowPrompt(origin))
+                  ?.toMap();
+          }
+          break;
+        case "onGeolocationPermissionsHidePrompt":
           if (_webview != null &&
-              _webview!.androidShouldInterceptRequest != null)
-            return (await _webview!.androidShouldInterceptRequest!(
-                    this, request))
-                ?.toMap();
-          else
-            return (await _inAppBrowser!.androidShouldInterceptRequest(request))
-                ?.toMap();
-        }
-        break;
-      case "onRenderProcessUnresponsive":
-        if ((_webview != null &&
-                _webview!.androidOnRenderProcessUnresponsive != null) ||
-            _inAppBrowser != null) {
-          String? url = call.arguments["url"];
-          Uri? uri = url != null ? Uri.parse(url) : null;
-          if (_webview != null &&
-              _webview!.androidOnRenderProcessUnresponsive != null)
-            return (await _webview!.androidOnRenderProcessUnresponsive!(
-                    this, uri))
-                ?.toMap();
-          else
-            return (await _inAppBrowser!
-                    .androidOnRenderProcessUnresponsive(uri))
-                ?.toMap();
-        }
-        break;
-      case "onRenderProcessResponsive":
-        if ((_webview != null &&
-                _webview!.androidOnRenderProcessResponsive != null) ||
-            _inAppBrowser != null) {
-          String? url = call.arguments["url"];
-          Uri? uri = url != null ? Uri.parse(url) : null;
-          if (_webview != null &&
-              _webview!.androidOnRenderProcessResponsive != null)
-            return (await _webview!.androidOnRenderProcessResponsive!(
-                    this, uri))
-                ?.toMap();
-          else
-            return (await _inAppBrowser!.androidOnRenderProcessResponsive(uri))
-                ?.toMap();
-        }
-        break;
-      case "onRenderProcessGone":
-        if ((_webview != null &&
-                _webview!.androidOnRenderProcessGone != null) ||
-            _inAppBrowser != null) {
-          Map<String, dynamic> arguments =
-              call.arguments.cast<String, dynamic>();
-          RenderProcessGoneDetail detail =
-              RenderProcessGoneDetail.fromMap(arguments)!;
+              _webview!.androidOnGeolocationPermissionsHidePrompt != null)
+            _webview!.androidOnGeolocationPermissionsHidePrompt!(this);
+          else if (_inAppBrowser != null)
+            _inAppBrowser!.androidOnGeolocationPermissionsHidePrompt();
+          break;
+        case "shouldInterceptRequest":
+          if ((_webview != null &&
+              _webview!.androidShouldInterceptRequest != null) ||
+              _inAppBrowser != null) {
+            Map<String, dynamic> arguments =
+            call.arguments.cast<String, dynamic>();
+            WebResourceRequest request = WebResourceRequest.fromMap(arguments)!;
 
-          if (_webview != null && _webview!.androidOnRenderProcessGone != null)
-            _webview!.androidOnRenderProcessGone!(this, detail);
-          else
-            _inAppBrowser!.androidOnRenderProcessGone(detail);
-        }
-        break;
-      case "onFormResubmission":
-        if ((_webview != null && _webview!.androidOnFormResubmission != null) ||
-            _inAppBrowser != null) {
-          String? url = call.arguments["url"];
-          Uri? uri = url != null ? Uri.parse(url) : null;
-          if (_webview != null && _webview!.androidOnFormResubmission != null)
-            return (await _webview!.androidOnFormResubmission!(this, uri))
-                ?.toMap();
-          else
-            return (await _inAppBrowser!.androidOnFormResubmission(uri))
-                ?.toMap();
-        }
-        break;
-      case "onZoomScaleChanged":
-        if ((_webview != null &&
-                // ignore: deprecated_member_use_from_same_package
-                (_webview!.androidOnScaleChanged != null ||
-                    _webview!.onZoomScaleChanged != null)) ||
-            _inAppBrowser != null) {
-          double oldScale = call.arguments["oldScale"];
-          double newScale = call.arguments["newScale"];
-          if (_webview != null) {
-            if (_webview!.onZoomScaleChanged != null)
-              _webview!.onZoomScaleChanged!(this, oldScale, newScale);
-            else {
+            if (_webview != null &&
+                _webview!.androidShouldInterceptRequest != null)
+              return (await _webview!.androidShouldInterceptRequest!(
+                  this, request))
+                  ?.toMap();
+            else
+              return (await _inAppBrowser!.androidShouldInterceptRequest(
+                  request))
+                  ?.toMap();
+          }
+          break;
+        case "onRenderProcessUnresponsive":
+          if ((_webview != null &&
+              _webview!.androidOnRenderProcessUnresponsive != null) ||
+              _inAppBrowser != null) {
+            String? url = call.arguments["url"];
+            Uri? uri = url != null ? Uri.parse(url) : null;
+            if (_webview != null &&
+                _webview!.androidOnRenderProcessUnresponsive != null)
+              return (await _webview!.androidOnRenderProcessUnresponsive!(
+                  this, uri))
+                  ?.toMap();
+            else
+              return (await _inAppBrowser!
+                  .androidOnRenderProcessUnresponsive(uri))
+                  ?.toMap();
+          }
+          break;
+        case "onRenderProcessResponsive":
+          if ((_webview != null &&
+              _webview!.androidOnRenderProcessResponsive != null) ||
+              _inAppBrowser != null) {
+            String? url = call.arguments["url"];
+            Uri? uri = url != null ? Uri.parse(url) : null;
+            if (_webview != null &&
+                _webview!.androidOnRenderProcessResponsive != null)
+              return (await _webview!.androidOnRenderProcessResponsive!(
+                  this, uri))
+                  ?.toMap();
+            else
+              return (await _inAppBrowser!.androidOnRenderProcessResponsive(
+                  uri))
+                  ?.toMap();
+          }
+          break;
+        case "onRenderProcessGone":
+          if ((_webview != null &&
+              _webview!.androidOnRenderProcessGone != null) ||
+              _inAppBrowser != null) {
+            Map<String, dynamic> arguments =
+            call.arguments.cast<String, dynamic>();
+            RenderProcessGoneDetail detail =
+            RenderProcessGoneDetail.fromMap(arguments)!;
+
+            if (_webview != null &&
+                _webview!.androidOnRenderProcessGone != null)
+              _webview!.androidOnRenderProcessGone!(this, detail);
+            else
+              _inAppBrowser!.androidOnRenderProcessGone(detail);
+          }
+          break;
+        case "onFormResubmission":
+          if ((_webview != null &&
+              _webview!.androidOnFormResubmission != null) ||
+              _inAppBrowser != null) {
+            String? url = call.arguments["url"];
+            Uri? uri = url != null ? Uri.parse(url) : null;
+            if (_webview != null && _webview!.androidOnFormResubmission != null)
+              return (await _webview!.androidOnFormResubmission!(this, uri))
+                  ?.toMap();
+            else
+              return (await _inAppBrowser!.androidOnFormResubmission(uri))
+                  ?.toMap();
+          }
+          break;
+        case "onZoomScaleChanged":
+          if ((_webview != null &&
               // ignore: deprecated_member_use_from_same_package
-              _webview!.androidOnScaleChanged!(this, oldScale, newScale);
-            }
-          } else {
-            // ignore: deprecated_member_use_from_same_package
-            _inAppBrowser!.androidOnScaleChanged(oldScale, newScale);
-          }
-        }
-        break;
-      case "onReceivedIcon":
-        if ((_webview != null && _webview!.androidOnReceivedIcon != null) ||
-            _inAppBrowser != null) {
-          Uint8List icon =
-              Uint8List.fromList(call.arguments["icon"].cast<int>());
-
-          if (_webview != null && _webview!.androidOnReceivedIcon != null)
-            _webview!.androidOnReceivedIcon!(this, icon);
-          else
-            _inAppBrowser!.androidOnReceivedIcon(icon);
-        }
-        break;
-      case "onReceivedTouchIconUrl":
-        if ((_webview != null &&
-                _webview!.androidOnReceivedTouchIconUrl != null) ||
-            _inAppBrowser != null) {
-          String url = call.arguments["url"];
-          bool precomposed = call.arguments["precomposed"];
-          Uri uri = Uri.parse(url);
-          if (_webview != null &&
-              _webview!.androidOnReceivedTouchIconUrl != null)
-            _webview!.androidOnReceivedTouchIconUrl!(this, uri, precomposed);
-          else
-            _inAppBrowser!.androidOnReceivedTouchIconUrl(uri, precomposed);
-        }
-        break;
-      case "onJsAlert":
-        if ((_webview != null && _webview!.onJsAlert != null) ||
-            _inAppBrowser != null) {
-          Map<String, dynamic> arguments =
-              call.arguments.cast<String, dynamic>();
-          JsAlertRequest jsAlertRequest = JsAlertRequest.fromMap(arguments)!;
-
-          if (_webview != null && _webview!.onJsAlert != null)
-            return (await _webview!.onJsAlert!(this, jsAlertRequest))?.toMap();
-          else
-            return (await _inAppBrowser!.onJsAlert(jsAlertRequest))?.toMap();
-        }
-        break;
-      case "onJsConfirm":
-        if ((_webview != null && _webview!.onJsConfirm != null) ||
-            _inAppBrowser != null) {
-          Map<String, dynamic> arguments =
-              call.arguments.cast<String, dynamic>();
-          JsConfirmRequest jsConfirmRequest =
-              JsConfirmRequest.fromMap(arguments)!;
-
-          if (_webview != null && _webview!.onJsConfirm != null)
-            return (await _webview!.onJsConfirm!(this, jsConfirmRequest))
-                ?.toMap();
-          else
-            return (await _inAppBrowser!.onJsConfirm(jsConfirmRequest))
-                ?.toMap();
-        }
-        break;
-      case "onJsPrompt":
-        if ((_webview != null && _webview!.onJsPrompt != null) ||
-            _inAppBrowser != null) {
-          Map<String, dynamic> arguments =
-              call.arguments.cast<String, dynamic>();
-          JsPromptRequest jsPromptRequest = JsPromptRequest.fromMap(arguments)!;
-
-          if (_webview != null && _webview!.onJsPrompt != null)
-            return (await _webview!.onJsPrompt!(this, jsPromptRequest))
-                ?.toMap();
-          else
-            return (await _inAppBrowser!.onJsPrompt(jsPromptRequest))?.toMap();
-        }
-        break;
-      case "onJsBeforeUnload":
-        if ((_webview != null && _webview!.androidOnJsBeforeUnload != null) ||
-            _inAppBrowser != null) {
-          Map<String, dynamic> arguments =
-              call.arguments.cast<String, dynamic>();
-          JsBeforeUnloadRequest jsBeforeUnloadRequest =
-              JsBeforeUnloadRequest.fromMap(arguments)!;
-
-          if (_webview != null && _webview!.androidOnJsBeforeUnload != null)
-            return (await _webview!.androidOnJsBeforeUnload!(
-                    this, jsBeforeUnloadRequest))
-                ?.toMap();
-          else
-            return (await _inAppBrowser!
-                    .androidOnJsBeforeUnload(jsBeforeUnloadRequest))
-                ?.toMap();
-        }
-        break;
-      case "onSafeBrowsingHit":
-        if ((_webview != null && _webview!.androidOnSafeBrowsingHit != null) ||
-            _inAppBrowser != null) {
-          String url = call.arguments["url"];
-          SafeBrowsingThreat? threatType =
-              SafeBrowsingThreat.fromValue(call.arguments["threatType"]);
-          Uri uri = Uri.parse(url);
-          if (_webview != null && _webview!.androidOnSafeBrowsingHit != null)
-            return (await _webview!.androidOnSafeBrowsingHit!(
-                    this, uri, threatType))
-                ?.toMap();
-          else
-            return (await _inAppBrowser!
-                    .androidOnSafeBrowsingHit(uri, threatType))
-                ?.toMap();
-        }
-        break;
-      case "onReceivedLoginRequest":
-        if ((_webview != null &&
-                _webview!.androidOnReceivedLoginRequest != null) ||
-            _inAppBrowser != null) {
-          Map<String, dynamic> arguments =
-              call.arguments.cast<String, dynamic>();
-          LoginRequest loginRequest = LoginRequest.fromMap(arguments)!;
-
-          if (_webview != null &&
-              _webview!.androidOnReceivedLoginRequest != null)
-            _webview!.androidOnReceivedLoginRequest!(this, loginRequest);
-          else
-            _inAppBrowser!.androidOnReceivedLoginRequest(loginRequest);
-        }
-        break;
-      case "onReceivedHttpAuthRequest":
-        if ((_webview != null && _webview!.onReceivedHttpAuthRequest != null) ||
-            _inAppBrowser != null) {
-          Map<String, dynamic> arguments =
-              call.arguments.cast<String, dynamic>();
-          HttpAuthenticationChallenge challenge =
-              HttpAuthenticationChallenge.fromMap(arguments)!;
-
-          if (_webview != null && _webview!.onReceivedHttpAuthRequest != null)
-            return (await _webview!.onReceivedHttpAuthRequest!(this, challenge))
-                ?.toMap();
-          else
-            return (await _inAppBrowser!.onReceivedHttpAuthRequest(challenge))
-                ?.toMap();
-        }
-        break;
-      case "onReceivedServerTrustAuthRequest":
-        if ((_webview != null &&
-                _webview!.onReceivedServerTrustAuthRequest != null) ||
-            _inAppBrowser != null) {
-          Map<String, dynamic> arguments =
-              call.arguments.cast<String, dynamic>();
-          ServerTrustChallenge challenge =
-              ServerTrustChallenge.fromMap(arguments)!;
-
-          if (_webview != null &&
-              _webview!.onReceivedServerTrustAuthRequest != null)
-            return (await _webview!.onReceivedServerTrustAuthRequest!(
-                    this, challenge))
-                ?.toMap();
-          else
-            return (await _inAppBrowser!
-                    .onReceivedServerTrustAuthRequest(challenge))
-                ?.toMap();
-        }
-        break;
-      case "onReceivedClientCertRequest":
-        if ((_webview != null &&
-                _webview!.onReceivedClientCertRequest != null) ||
-            _inAppBrowser != null) {
-          Map<String, dynamic> arguments =
-              call.arguments.cast<String, dynamic>();
-          ClientCertChallenge challenge =
-              ClientCertChallenge.fromMap(arguments)!;
-
-          if (_webview != null && _webview!.onReceivedClientCertRequest != null)
-            return (await _webview!.onReceivedClientCertRequest!(
-                    this, challenge))
-                ?.toMap();
-          else
-            return (await _inAppBrowser!.onReceivedClientCertRequest(challenge))
-                ?.toMap();
-        }
-        break;
-      case "onFindResultReceived":
-        if ((_webview != null && _webview!.onFindResultReceived != null) ||
-            _inAppBrowser != null) {
-          int activeMatchOrdinal = call.arguments["activeMatchOrdinal"];
-          int numberOfMatches = call.arguments["numberOfMatches"];
-          bool isDoneCounting = call.arguments["isDoneCounting"];
-          if (_webview != null && _webview!.onFindResultReceived != null)
-            _webview!.onFindResultReceived!(
-                this, activeMatchOrdinal, numberOfMatches, isDoneCounting);
-          else
-            _inAppBrowser!.onFindResultReceived(
-                activeMatchOrdinal, numberOfMatches, isDoneCounting);
-        }
-        break;
-      case "onPermissionRequest":
-        if ((_webview != null &&
-                _webview!.androidOnPermissionRequest != null) ||
-            _inAppBrowser != null) {
-          String origin = call.arguments["origin"];
-          List<String> resources = call.arguments["resources"].cast<String>();
-          if (_webview != null && _webview!.androidOnPermissionRequest != null)
-            return (await _webview!.androidOnPermissionRequest!(
-                    this, origin, resources))
-                ?.toMap();
-          else
-            return (await _inAppBrowser!
-                    .androidOnPermissionRequest(origin, resources))
-                ?.toMap();
-        }
-        break;
-      case "onUpdateVisitedHistory":
-        if ((_webview != null && _webview!.onUpdateVisitedHistory != null) ||
-            _inAppBrowser != null) {
-          String? url = call.arguments["url"];
-          bool? androidIsReload = call.arguments["androidIsReload"];
-          Uri? uri = url != null ? Uri.parse(url) : null;
-          if (_webview != null && _webview!.onUpdateVisitedHistory != null)
-            _webview!.onUpdateVisitedHistory!(this, uri, androidIsReload);
-          else
-            _inAppBrowser!.onUpdateVisitedHistory(uri, androidIsReload);
-        }
-        break;
-      case "onWebContentProcessDidTerminate":
-        if (_webview != null &&
-            _webview!.iosOnWebContentProcessDidTerminate != null)
-          _webview!.iosOnWebContentProcessDidTerminate!(this);
-        else if (_inAppBrowser != null)
-          _inAppBrowser!.iosOnWebContentProcessDidTerminate();
-        break;
-      case "onPageCommitVisible":
-        if ((_webview != null && _webview!.onPageCommitVisible != null) ||
-            _inAppBrowser != null) {
-          String? url = call.arguments["url"];
-          Uri? uri = url != null ? Uri.parse(url) : null;
-          if (_webview != null && _webview!.onPageCommitVisible != null)
-            _webview!.onPageCommitVisible!(this, uri);
-          else
-            _inAppBrowser!.onPageCommitVisible(uri);
-        }
-        break;
-      case "onDidReceiveServerRedirectForProvisionalNavigation":
-        if (_webview != null &&
-            _webview!.iosOnDidReceiveServerRedirectForProvisionalNavigation !=
-                null)
-          _webview!
-              .iosOnDidReceiveServerRedirectForProvisionalNavigation!(this);
-        else if (_inAppBrowser != null)
-          _inAppBrowser!
-              .iosOnDidReceiveServerRedirectForProvisionalNavigation();
-        break;
-      case "onNavigationResponse":
-        if ((_webview != null && _webview!.iosOnNavigationResponse != null) ||
-            _inAppBrowser != null) {
-          Map<String, dynamic> arguments =
-              call.arguments.cast<String, dynamic>();
-          IOSWKNavigationResponse iosOnNavigationResponse =
-              IOSWKNavigationResponse.fromMap(arguments)!;
-
-          if (_webview != null && _webview!.iosOnNavigationResponse != null)
-            return (await _webview!.iosOnNavigationResponse!(
-                    this, iosOnNavigationResponse))
-                ?.toMap();
-          else
-            return (await _inAppBrowser!
-                    .iosOnNavigationResponse(iosOnNavigationResponse))
-                ?.toMap();
-        }
-        break;
-      case "shouldAllowDeprecatedTLS":
-        if ((_webview != null &&
-                _webview!.iosShouldAllowDeprecatedTLS != null) ||
-            _inAppBrowser != null) {
-          Map<String, dynamic> arguments =
-              call.arguments.cast<String, dynamic>();
-          URLAuthenticationChallenge challenge =
-              URLAuthenticationChallenge.fromMap(arguments)!;
-
-          if (_webview != null && _webview!.iosShouldAllowDeprecatedTLS != null)
-            return (await _webview!.iosShouldAllowDeprecatedTLS!(
-                    this, challenge))
-                ?.toMap();
-          else
-            return (await _inAppBrowser!.iosShouldAllowDeprecatedTLS(challenge))
-                ?.toMap();
-        }
-        break;
-      case "onLongPressHitTestResult":
-        if ((_webview != null && _webview!.onLongPressHitTestResult != null) ||
-            _inAppBrowser != null) {
-          Map<String, dynamic> arguments =
-              call.arguments.cast<String, dynamic>();
-          InAppWebViewHitTestResult hitTestResult =
-              InAppWebViewHitTestResult.fromMap(arguments)!;
-
-          if (_webview != null && _webview!.onLongPressHitTestResult != null)
-            _webview!.onLongPressHitTestResult!(this, hitTestResult);
-          else
-            _inAppBrowser!.onLongPressHitTestResult(hitTestResult);
-        }
-        break;
-      case "onCreateContextMenu":
-        ContextMenu? contextMenu;
-        if (_webview != null && _webview!.contextMenu != null) {
-          contextMenu = _webview!.contextMenu;
-        } else if (_inAppBrowser != null &&
-            _inAppBrowser!.contextMenu != null) {
-          contextMenu = _inAppBrowser!.contextMenu;
-        }
-
-        if (contextMenu != null && contextMenu.onCreateContextMenu != null) {
-          Map<String, dynamic> arguments =
-              call.arguments.cast<String, dynamic>();
-          InAppWebViewHitTestResult hitTestResult =
-              InAppWebViewHitTestResult.fromMap(arguments)!;
-
-          contextMenu.onCreateContextMenu!(hitTestResult);
-        }
-        break;
-      case "onHideContextMenu":
-        ContextMenu? contextMenu;
-        if (_webview != null && _webview!.contextMenu != null) {
-          contextMenu = _webview!.contextMenu;
-        } else if (_inAppBrowser != null &&
-            _inAppBrowser!.contextMenu != null) {
-          contextMenu = _inAppBrowser!.contextMenu;
-        }
-
-        if (contextMenu != null && contextMenu.onHideContextMenu != null) {
-          contextMenu.onHideContextMenu!();
-        }
-        break;
-      case "onContextMenuActionItemClicked":
-        ContextMenu? contextMenu;
-        if (_webview != null && _webview!.contextMenu != null) {
-          contextMenu = _webview!.contextMenu;
-        } else if (_inAppBrowser != null &&
-            _inAppBrowser!.contextMenu != null) {
-          contextMenu = _inAppBrowser!.contextMenu;
-        }
-
-        if (contextMenu != null) {
-          int? androidId = call.arguments["androidId"];
-          String? iosId = call.arguments["iosId"];
-          String title = call.arguments["title"];
-
-          ContextMenuItem menuItemClicked = ContextMenuItem(
-              androidId: androidId, iosId: iosId, title: title, action: null);
-
-          for (var menuItem in contextMenu.menuItems) {
-            if ((defaultTargetPlatform == TargetPlatform.android &&
-                    menuItem.androidId == androidId) ||
-                (defaultTargetPlatform == TargetPlatform.iOS &&
-                    menuItem.iosId == iosId)) {
-              menuItemClicked = menuItem;
-              if (menuItem.action != null) {
-                menuItem.action!();
+              (_webview!.androidOnScaleChanged != null ||
+                  _webview!.onZoomScaleChanged != null)) ||
+              _inAppBrowser != null) {
+            double oldScale = call.arguments["oldScale"];
+            double newScale = call.arguments["newScale"];
+            if (_webview != null) {
+              if (_webview!.onZoomScaleChanged != null)
+                _webview!.onZoomScaleChanged!(this, oldScale, newScale);
+              else {
+                // ignore: deprecated_member_use_from_same_package
+                _webview!.androidOnScaleChanged!(this, oldScale, newScale);
               }
-              break;
+            } else {
+              // ignore: deprecated_member_use_from_same_package
+              _inAppBrowser!.androidOnScaleChanged(oldScale, newScale);
             }
           }
+          break;
+        case "onReceivedIcon":
+          if ((_webview != null && _webview!.androidOnReceivedIcon != null) ||
+              _inAppBrowser != null) {
+            Uint8List icon =
+            Uint8List.fromList(call.arguments["icon"].cast<int>());
 
-          if (contextMenu.onContextMenuActionItemClicked != null) {
-            contextMenu.onContextMenuActionItemClicked!(menuItemClicked);
+            if (_webview != null && _webview!.androidOnReceivedIcon != null)
+              _webview!.androidOnReceivedIcon!(this, icon);
+            else
+              _inAppBrowser!.androidOnReceivedIcon(icon);
           }
-        }
-        break;
-      case "onEnterFullscreen":
-        if (_webview != null && _webview!.onEnterFullscreen != null)
-          _webview!.onEnterFullscreen!(this);
-        else if (_inAppBrowser != null) _inAppBrowser!.onEnterFullscreen();
-        break;
-      case "onExitFullscreen":
-        if (_webview != null && _webview!.onExitFullscreen != null)
-          _webview!.onExitFullscreen!(this);
-        else if (_inAppBrowser != null) _inAppBrowser!.onExitFullscreen();
-        break;
-      case "onOverScrolled":
-        if ((_webview != null && _webview!.onOverScrolled != null) ||
-            _inAppBrowser != null) {
-          int x = call.arguments["x"];
-          int y = call.arguments["y"];
-          bool clampedX = call.arguments["clampedX"];
-          bool clampedY = call.arguments["clampedY"];
-
-          if (_webview != null && _webview!.onOverScrolled != null)
-            _webview!.onOverScrolled!(this, x, y, clampedX, clampedY);
-          else
-            _inAppBrowser!.onOverScrolled(x, y, clampedX, clampedY);
-        }
-        break;
-      case "onCallJsHandler":
-        String handlerName = call.arguments["handlerName"];
-        // decode args to json
-        List<dynamic> args = jsonDecode(call.arguments["args"]);
-
-        switch (handlerName) {
-          case "onLoadResource":
-            if ((_webview != null && _webview!.onLoadResource != null) ||
-                _inAppBrowser != null) {
-              Map<String, dynamic> arguments = args[0].cast<String, dynamic>();
-              arguments["startTime"] = arguments["startTime"] is int
-                  ? arguments["startTime"].toDouble()
-                  : arguments["startTime"];
-              arguments["duration"] = arguments["duration"] is int
-                  ? arguments["duration"].toDouble()
-                  : arguments["duration"];
-
-              var response = LoadedResource.fromMap(arguments)!;
-
-              if (_webview != null && _webview!.onLoadResource != null)
-                _webview!.onLoadResource!(this, response);
-              else
-                _inAppBrowser!.onLoadResource(response);
-            }
-            return null;
-          case "shouldInterceptAjaxRequest":
-            if ((_webview != null &&
-                    _webview!.shouldInterceptAjaxRequest != null) ||
-                _inAppBrowser != null) {
-              Map<String, dynamic> arguments = args[0].cast<String, dynamic>();
-              AjaxRequest request = AjaxRequest.fromMap(arguments)!;
-
-              if (_webview != null &&
-                  _webview!.shouldInterceptAjaxRequest != null)
-                return jsonEncode(
-                    await _webview!.shouldInterceptAjaxRequest!(this, request));
-              else
-                return jsonEncode(
-                    await _inAppBrowser!.shouldInterceptAjaxRequest(request));
-            }
-            return null;
-          case "onAjaxReadyStateChange":
-            if ((_webview != null &&
-                    _webview!.onAjaxReadyStateChange != null) ||
-                _inAppBrowser != null) {
-              Map<String, dynamic> arguments = args[0].cast<String, dynamic>();
-              AjaxRequest request = AjaxRequest.fromMap(arguments)!;
-
-              if (_webview != null && _webview!.onAjaxReadyStateChange != null)
-                return jsonEncode(
-                    await _webview!.onAjaxReadyStateChange!(this, request));
-              else
-                return jsonEncode(
-                    await _inAppBrowser!.onAjaxReadyStateChange(request));
-            }
-            return null;
-          case "onAjaxProgress":
-            if ((_webview != null && _webview!.onAjaxProgress != null) ||
-                _inAppBrowser != null) {
-              Map<String, dynamic> arguments = args[0].cast<String, dynamic>();
-              AjaxRequest request = AjaxRequest.fromMap(arguments)!;
-
-              if (_webview != null && _webview!.onAjaxProgress != null)
-                return jsonEncode(
-                    await _webview!.onAjaxProgress!(this, request));
-              else
-                return jsonEncode(await _inAppBrowser!.onAjaxProgress(request));
-            }
-            return null;
-          case "shouldInterceptFetchRequest":
-            if ((_webview != null &&
-                    _webview!.shouldInterceptFetchRequest != null) ||
-                _inAppBrowser != null) {
-              Map<String, dynamic> arguments = args[0].cast<String, dynamic>();
-              FetchRequest request = FetchRequest.fromMap(arguments)!;
-
-              if (_webview != null &&
-                  _webview!.shouldInterceptFetchRequest != null)
-                return jsonEncode(await _webview!.shouldInterceptFetchRequest!(
-                    this, request));
-              else
-                return jsonEncode(
-                    await _inAppBrowser!.shouldInterceptFetchRequest(request));
-            }
-            return null;
-          case "onPrint":
-            if ((_webview != null && _webview!.onPrint != null) ||
-                _inAppBrowser != null) {
-              String? url = args[0];
-              Uri? uri = url != null ? Uri.parse(url) : null;
-              if (_webview != null && _webview!.onPrint != null)
-                _webview!.onPrint!(this, uri);
-              else
-                _inAppBrowser!.onPrint(uri);
-            }
-            return null;
-          case "onWindowFocus":
-            if (_webview != null && _webview!.onWindowFocus != null)
-              _webview!.onWindowFocus!(this);
-            else if (_inAppBrowser != null) _inAppBrowser!.onWindowFocus();
-            return null;
-          case "onWindowBlur":
-            if (_webview != null && _webview!.onWindowBlur != null)
-              _webview!.onWindowBlur!(this);
-            else if (_inAppBrowser != null) _inAppBrowser!.onWindowBlur();
-            return null;
-          case "onInjectedScriptLoaded":
-            String id = args[0];
-            var onLoadCallback = _injectedScriptsFromURL[id]?.onLoad;
-            if ((_webview != null || _inAppBrowser != null) &&
-                onLoadCallback != null) {
-              onLoadCallback();
-            }
-            return null;
-          case "onInjectedScriptError":
-            String id = args[0];
-            var onErrorCallback = _injectedScriptsFromURL[id]?.onError;
-            if ((_webview != null || _inAppBrowser != null) &&
-                onErrorCallback != null) {
-              onErrorCallback();
-            }
-            return null;
-        }
-
-        if (javaScriptHandlersMap.containsKey(handlerName)) {
-          // convert result to json
-          try {
-            return jsonEncode(await javaScriptHandlersMap[handlerName]!(args));
-          } catch (error) {
-            print(error);
-            return null;
+          break;
+        case "onReceivedTouchIconUrl":
+          if ((_webview != null &&
+              _webview!.androidOnReceivedTouchIconUrl != null) ||
+              _inAppBrowser != null) {
+            String url = call.arguments["url"];
+            bool precomposed = call.arguments["precomposed"];
+            Uri uri = Uri.parse(url);
+            if (_webview != null &&
+                _webview!.androidOnReceivedTouchIconUrl != null)
+              _webview!.androidOnReceivedTouchIconUrl!(this, uri, precomposed);
+            else
+              _inAppBrowser!.androidOnReceivedTouchIconUrl(uri, precomposed);
           }
-        }
-        break;
-      default:
-        throw UnimplementedError("Unimplemented ${call.method} method");
+          break;
+        case "onJsAlert":
+          if ((_webview != null && _webview!.onJsAlert != null) ||
+              _inAppBrowser != null) {
+            Map<String, dynamic> arguments =
+            call.arguments.cast<String, dynamic>();
+            JsAlertRequest jsAlertRequest = JsAlertRequest.fromMap(arguments)!;
+
+            if (_webview != null && _webview!.onJsAlert != null)
+              return (await _webview!.onJsAlert!(this, jsAlertRequest))
+                  ?.toMap();
+            else
+              return (await _inAppBrowser!.onJsAlert(jsAlertRequest))?.toMap();
+          }
+          break;
+        case "onJsConfirm":
+          if ((_webview != null && _webview!.onJsConfirm != null) ||
+              _inAppBrowser != null) {
+            Map<String, dynamic> arguments =
+            call.arguments.cast<String, dynamic>();
+            JsConfirmRequest jsConfirmRequest =
+            JsConfirmRequest.fromMap(arguments)!;
+
+            if (_webview != null && _webview!.onJsConfirm != null)
+              return (await _webview!.onJsConfirm!(this, jsConfirmRequest))
+                  ?.toMap();
+            else
+              return (await _inAppBrowser!.onJsConfirm(jsConfirmRequest))
+                  ?.toMap();
+          }
+          break;
+        case "onJsPrompt":
+          if ((_webview != null && _webview!.onJsPrompt != null) ||
+              _inAppBrowser != null) {
+            Map<String, dynamic> arguments =
+            call.arguments.cast<String, dynamic>();
+            JsPromptRequest jsPromptRequest = JsPromptRequest.fromMap(
+                arguments)!;
+
+            if (_webview != null && _webview!.onJsPrompt != null)
+              return (await _webview!.onJsPrompt!(this, jsPromptRequest))
+                  ?.toMap();
+            else
+              return (await _inAppBrowser!.onJsPrompt(jsPromptRequest))
+                  ?.toMap();
+          }
+          break;
+        case "onJsBeforeUnload":
+          if ((_webview != null && _webview!.androidOnJsBeforeUnload != null) ||
+              _inAppBrowser != null) {
+            Map<String, dynamic> arguments =
+            call.arguments.cast<String, dynamic>();
+            JsBeforeUnloadRequest jsBeforeUnloadRequest =
+            JsBeforeUnloadRequest.fromMap(arguments)!;
+
+            if (_webview != null && _webview!.androidOnJsBeforeUnload != null)
+              return (await _webview!.androidOnJsBeforeUnload!(
+                  this, jsBeforeUnloadRequest))
+                  ?.toMap();
+            else
+              return (await _inAppBrowser!
+                  .androidOnJsBeforeUnload(jsBeforeUnloadRequest))
+                  ?.toMap();
+          }
+          break;
+        case "onSafeBrowsingHit":
+          if ((_webview != null &&
+              _webview!.androidOnSafeBrowsingHit != null) ||
+              _inAppBrowser != null) {
+            String url = call.arguments["url"];
+            SafeBrowsingThreat? threatType =
+            SafeBrowsingThreat.fromValue(call.arguments["threatType"]);
+            Uri uri = Uri.parse(url);
+            if (_webview != null && _webview!.androidOnSafeBrowsingHit != null)
+              return (await _webview!.androidOnSafeBrowsingHit!(
+                  this, uri, threatType))
+                  ?.toMap();
+            else
+              return (await _inAppBrowser!
+                  .androidOnSafeBrowsingHit(uri, threatType))
+                  ?.toMap();
+          }
+          break;
+        case "onReceivedLoginRequest":
+          if ((_webview != null &&
+              _webview!.androidOnReceivedLoginRequest != null) ||
+              _inAppBrowser != null) {
+            Map<String, dynamic> arguments =
+            call.arguments.cast<String, dynamic>();
+            LoginRequest loginRequest = LoginRequest.fromMap(arguments)!;
+
+            if (_webview != null &&
+                _webview!.androidOnReceivedLoginRequest != null)
+              _webview!.androidOnReceivedLoginRequest!(this, loginRequest);
+            else
+              _inAppBrowser!.androidOnReceivedLoginRequest(loginRequest);
+          }
+          break;
+        case "onReceivedHttpAuthRequest":
+          if ((_webview != null &&
+              _webview!.onReceivedHttpAuthRequest != null) ||
+              _inAppBrowser != null) {
+            Map<String, dynamic> arguments =
+            call.arguments.cast<String, dynamic>();
+            HttpAuthenticationChallenge challenge =
+            HttpAuthenticationChallenge.fromMap(arguments)!;
+
+            if (_webview != null && _webview!.onReceivedHttpAuthRequest != null)
+              return (await _webview!.onReceivedHttpAuthRequest!(
+                  this, challenge))
+                  ?.toMap();
+            else
+              return (await _inAppBrowser!.onReceivedHttpAuthRequest(challenge))
+                  ?.toMap();
+          }
+          break;
+        case "onReceivedServerTrustAuthRequest":
+          if ((_webview != null &&
+              _webview!.onReceivedServerTrustAuthRequest != null) ||
+              _inAppBrowser != null) {
+            Map<String, dynamic> arguments =
+            call.arguments.cast<String, dynamic>();
+            ServerTrustChallenge challenge =
+            ServerTrustChallenge.fromMap(arguments)!;
+
+            if (_webview != null &&
+                _webview!.onReceivedServerTrustAuthRequest != null)
+              return (await _webview!.onReceivedServerTrustAuthRequest!(
+                  this, challenge))
+                  ?.toMap();
+            else
+              return (await _inAppBrowser!
+                  .onReceivedServerTrustAuthRequest(challenge))
+                  ?.toMap();
+          }
+          break;
+        case "onReceivedClientCertRequest":
+          if ((_webview != null &&
+              _webview!.onReceivedClientCertRequest != null) ||
+              _inAppBrowser != null) {
+            Map<String, dynamic> arguments =
+            call.arguments.cast<String, dynamic>();
+            ClientCertChallenge challenge =
+            ClientCertChallenge.fromMap(arguments)!;
+
+            if (_webview != null &&
+                _webview!.onReceivedClientCertRequest != null)
+              return (await _webview!.onReceivedClientCertRequest!(
+                  this, challenge))
+                  ?.toMap();
+            else
+              return (await _inAppBrowser!.onReceivedClientCertRequest(
+                  challenge))
+                  ?.toMap();
+          }
+          break;
+        case "onFindResultReceived":
+          if ((_webview != null && _webview!.onFindResultReceived != null) ||
+              _inAppBrowser != null) {
+            int activeMatchOrdinal = call.arguments["activeMatchOrdinal"];
+            int numberOfMatches = call.arguments["numberOfMatches"];
+            bool isDoneCounting = call.arguments["isDoneCounting"];
+            if (_webview != null && _webview!.onFindResultReceived != null)
+              _webview!.onFindResultReceived!(
+                  this, activeMatchOrdinal, numberOfMatches, isDoneCounting);
+            else
+              _inAppBrowser!.onFindResultReceived(
+                  activeMatchOrdinal, numberOfMatches, isDoneCounting);
+          }
+          break;
+        case "onPermissionRequest":
+          if ((_webview != null &&
+              _webview!.androidOnPermissionRequest != null) ||
+              _inAppBrowser != null) {
+            String origin = call.arguments["origin"];
+            List<String> resources = call.arguments["resources"].cast<String>();
+            if (_webview != null &&
+                _webview!.androidOnPermissionRequest != null)
+              return (await _webview!.androidOnPermissionRequest!(
+                  this, origin, resources))
+                  ?.toMap();
+            else
+              return (await _inAppBrowser!
+                  .androidOnPermissionRequest(origin, resources))
+                  ?.toMap();
+          }
+          break;
+        case "onUpdateVisitedHistory":
+          if ((_webview != null && _webview!.onUpdateVisitedHistory != null) ||
+              _inAppBrowser != null) {
+            String? url = call.arguments["url"];
+            bool? androidIsReload = call.arguments["androidIsReload"];
+            Uri? uri = url != null ? Uri.parse(url) : null;
+            if (_webview != null && _webview!.onUpdateVisitedHistory != null)
+              _webview!.onUpdateVisitedHistory!(this, uri, androidIsReload);
+            else
+              _inAppBrowser!.onUpdateVisitedHistory(uri, androidIsReload);
+          }
+          break;
+        case "onWebContentProcessDidTerminate":
+          if (_webview != null &&
+              _webview!.iosOnWebContentProcessDidTerminate != null)
+            _webview!.iosOnWebContentProcessDidTerminate!(this);
+          else if (_inAppBrowser != null)
+            _inAppBrowser!.iosOnWebContentProcessDidTerminate();
+          break;
+        case "onPageCommitVisible":
+          if ((_webview != null && _webview!.onPageCommitVisible != null) ||
+              _inAppBrowser != null) {
+            String? url = call.arguments["url"];
+            Uri? uri = url != null ? Uri.parse(url) : null;
+            if (_webview != null && _webview!.onPageCommitVisible != null)
+              _webview!.onPageCommitVisible!(this, uri);
+            else
+              _inAppBrowser!.onPageCommitVisible(uri);
+          }
+          break;
+        case "onDidReceiveServerRedirectForProvisionalNavigation":
+          if (_webview != null &&
+              _webview!.iosOnDidReceiveServerRedirectForProvisionalNavigation !=
+                  null)
+            _webview!
+                .iosOnDidReceiveServerRedirectForProvisionalNavigation!(this);
+          else if (_inAppBrowser != null)
+            _inAppBrowser!
+                .iosOnDidReceiveServerRedirectForProvisionalNavigation();
+          break;
+        case "onNavigationResponse":
+          if ((_webview != null && _webview!.iosOnNavigationResponse != null) ||
+              _inAppBrowser != null) {
+            Map<String, dynamic> arguments =
+            call.arguments.cast<String, dynamic>();
+            IOSWKNavigationResponse iosOnNavigationResponse =
+            IOSWKNavigationResponse.fromMap(arguments)!;
+
+            if (_webview != null && _webview!.iosOnNavigationResponse != null)
+              return (await _webview!.iosOnNavigationResponse!(
+                  this, iosOnNavigationResponse))
+                  ?.toMap();
+            else
+              return (await _inAppBrowser!
+                  .iosOnNavigationResponse(iosOnNavigationResponse))
+                  ?.toMap();
+          }
+          break;
+        case "shouldAllowDeprecatedTLS":
+          if ((_webview != null &&
+              _webview!.iosShouldAllowDeprecatedTLS != null) ||
+              _inAppBrowser != null) {
+            Map<String, dynamic> arguments =
+            call.arguments.cast<String, dynamic>();
+            URLAuthenticationChallenge challenge =
+            URLAuthenticationChallenge.fromMap(arguments)!;
+
+            if (_webview != null &&
+                _webview!.iosShouldAllowDeprecatedTLS != null)
+              return (await _webview!.iosShouldAllowDeprecatedTLS!(
+                  this, challenge))
+                  ?.toMap();
+            else
+              return (await _inAppBrowser!.iosShouldAllowDeprecatedTLS(
+                  challenge))
+                  ?.toMap();
+          }
+          break;
+        case "onLongPressHitTestResult":
+          if ((_webview != null &&
+              _webview!.onLongPressHitTestResult != null) ||
+              _inAppBrowser != null) {
+            Map<String, dynamic> arguments =
+            call.arguments.cast<String, dynamic>();
+            InAppWebViewHitTestResult hitTestResult =
+            InAppWebViewHitTestResult.fromMap(arguments)!;
+
+            if (_webview != null && _webview!.onLongPressHitTestResult != null)
+              _webview!.onLongPressHitTestResult!(this, hitTestResult);
+            else
+              _inAppBrowser!.onLongPressHitTestResult(hitTestResult);
+          }
+          break;
+        case "onCreateContextMenu":
+          ContextMenu? contextMenu;
+          if (_webview != null && _webview!.contextMenu != null) {
+            contextMenu = _webview!.contextMenu;
+          } else if (_inAppBrowser != null &&
+              _inAppBrowser!.contextMenu != null) {
+            contextMenu = _inAppBrowser!.contextMenu;
+          }
+
+          if (contextMenu != null && contextMenu.onCreateContextMenu != null) {
+            Map<String, dynamic> arguments =
+            call.arguments.cast<String, dynamic>();
+            InAppWebViewHitTestResult hitTestResult =
+            InAppWebViewHitTestResult.fromMap(arguments)!;
+
+            contextMenu.onCreateContextMenu!(hitTestResult);
+          }
+          break;
+        case "onHideContextMenu":
+          ContextMenu? contextMenu;
+          if (_webview != null && _webview!.contextMenu != null) {
+            contextMenu = _webview!.contextMenu;
+          } else if (_inAppBrowser != null &&
+              _inAppBrowser!.contextMenu != null) {
+            contextMenu = _inAppBrowser!.contextMenu;
+          }
+
+          if (contextMenu != null && contextMenu.onHideContextMenu != null) {
+            contextMenu.onHideContextMenu!();
+          }
+          break;
+        case "onContextMenuActionItemClicked":
+          ContextMenu? contextMenu;
+          if (_webview != null && _webview!.contextMenu != null) {
+            contextMenu = _webview!.contextMenu;
+          } else if (_inAppBrowser != null &&
+              _inAppBrowser!.contextMenu != null) {
+            contextMenu = _inAppBrowser!.contextMenu;
+          }
+
+          if (contextMenu != null) {
+            int? androidId = call.arguments["androidId"];
+            String? iosId = call.arguments["iosId"];
+            String title = call.arguments["title"];
+
+            ContextMenuItem menuItemClicked = ContextMenuItem(
+                androidId: androidId, iosId: iosId, title: title, action: null);
+
+            for (var menuItem in contextMenu.menuItems) {
+              if ((defaultTargetPlatform == TargetPlatform.android &&
+                  menuItem.androidId == androidId) ||
+                  (defaultTargetPlatform == TargetPlatform.iOS &&
+                      menuItem.iosId == iosId)) {
+                menuItemClicked = menuItem;
+                if (menuItem.action != null) {
+                  menuItem.action!();
+                }
+                break;
+              }
+            }
+
+            if (contextMenu.onContextMenuActionItemClicked != null) {
+              contextMenu.onContextMenuActionItemClicked!(menuItemClicked);
+            }
+          }
+          break;
+        case "onEnterFullscreen":
+          if (_webview != null && _webview!.onEnterFullscreen != null)
+            _webview!.onEnterFullscreen!(this);
+          else if (_inAppBrowser != null) _inAppBrowser!.onEnterFullscreen();
+          break;
+        case "onExitFullscreen":
+          if (_webview != null && _webview!.onExitFullscreen != null)
+            _webview!.onExitFullscreen!(this);
+          else if (_inAppBrowser != null) _inAppBrowser!.onExitFullscreen();
+          break;
+        case "onOverScrolled":
+          if ((_webview != null && _webview!.onOverScrolled != null) ||
+              _inAppBrowser != null) {
+            int x = call.arguments["x"];
+            int y = call.arguments["y"];
+            bool clampedX = call.arguments["clampedX"];
+            bool clampedY = call.arguments["clampedY"];
+
+            if (_webview != null && _webview!.onOverScrolled != null)
+              _webview!.onOverScrolled!(this, x, y, clampedX, clampedY);
+            else
+              _inAppBrowser!.onOverScrolled(x, y, clampedX, clampedY);
+          }
+          break;
+        case "onCallJsHandler":
+          String handlerName = call.arguments["handlerName"];
+          // decode args to json
+          List<dynamic> args = jsonDecode(call.arguments["args"]);
+
+          switch (handlerName) {
+            case "onLoadResource":
+              if ((_webview != null && _webview!.onLoadResource != null) ||
+                  _inAppBrowser != null) {
+                Map<String, dynamic> arguments = args[0].cast<String,
+                    dynamic>();
+                arguments["startTime"] = arguments["startTime"] is int
+                    ? arguments["startTime"].toDouble()
+                    : arguments["startTime"];
+                arguments["duration"] = arguments["duration"] is int
+                    ? arguments["duration"].toDouble()
+                    : arguments["duration"];
+
+                var response = LoadedResource.fromMap(arguments)!;
+
+                if (_webview != null && _webview!.onLoadResource != null)
+                  _webview!.onLoadResource!(this, response);
+                else
+                  _inAppBrowser!.onLoadResource(response);
+              }
+              return null;
+            case "shouldInterceptAjaxRequest":
+              if ((_webview != null &&
+                  _webview!.shouldInterceptAjaxRequest != null) ||
+                  _inAppBrowser != null) {
+                Map<String, dynamic> arguments = args[0].cast<String,
+                    dynamic>();
+                AjaxRequest request = AjaxRequest.fromMap(arguments)!;
+
+                if (_webview != null &&
+                    _webview!.shouldInterceptAjaxRequest != null)
+                  return jsonEncode(
+                      await _webview!.shouldInterceptAjaxRequest!(
+                          this, request));
+                else
+                  return jsonEncode(
+                      await _inAppBrowser!.shouldInterceptAjaxRequest(request));
+              }
+              return null;
+            case "onAjaxReadyStateChange":
+              if ((_webview != null &&
+                  _webview!.onAjaxReadyStateChange != null) ||
+                  _inAppBrowser != null) {
+                Map<String, dynamic> arguments = args[0].cast<String,
+                    dynamic>();
+                AjaxRequest request = AjaxRequest.fromMap(arguments)!;
+
+                if (_webview != null &&
+                    _webview!.onAjaxReadyStateChange != null)
+                  return jsonEncode(
+                      await _webview!.onAjaxReadyStateChange!(this, request));
+                else
+                  return jsonEncode(
+                      await _inAppBrowser!.onAjaxReadyStateChange(request));
+              }
+              return null;
+            case "onAjaxProgress":
+              if ((_webview != null && _webview!.onAjaxProgress != null) ||
+                  _inAppBrowser != null) {
+                Map<String, dynamic> arguments = args[0].cast<String,
+                    dynamic>();
+                AjaxRequest request = AjaxRequest.fromMap(arguments)!;
+
+                if (_webview != null && _webview!.onAjaxProgress != null)
+                  return jsonEncode(
+                      await _webview!.onAjaxProgress!(this, request));
+                else
+                  return jsonEncode(
+                      await _inAppBrowser!.onAjaxProgress(request));
+              }
+              return null;
+            case "shouldInterceptFetchRequest":
+              if ((_webview != null &&
+                  _webview!.shouldInterceptFetchRequest != null) ||
+                  _inAppBrowser != null) {
+                Map<String, dynamic> arguments = args[0].cast<String,
+                    dynamic>();
+                FetchRequest request = FetchRequest.fromMap(arguments)!;
+
+                if (_webview != null &&
+                    _webview!.shouldInterceptFetchRequest != null)
+                  return jsonEncode(
+                      await _webview!.shouldInterceptFetchRequest!(
+                          this, request));
+                else
+                  return jsonEncode(
+                      await _inAppBrowser!.shouldInterceptFetchRequest(
+                          request));
+              }
+              return null;
+            case "onPrint":
+              if ((_webview != null && _webview!.onPrint != null) ||
+                  _inAppBrowser != null) {
+                String? url = args[0];
+                Uri? uri = url != null ? Uri.parse(url) : null;
+                if (_webview != null && _webview!.onPrint != null)
+                  _webview!.onPrint!(this, uri);
+                else
+                  _inAppBrowser!.onPrint(uri);
+              }
+              return null;
+            case "onWindowFocus":
+              if (_webview != null && _webview!.onWindowFocus != null)
+                _webview!.onWindowFocus!(this);
+              else if (_inAppBrowser != null) _inAppBrowser!.onWindowFocus();
+              return null;
+            case "onWindowBlur":
+              if (_webview != null && _webview!.onWindowBlur != null)
+                _webview!.onWindowBlur!(this);
+              else if (_inAppBrowser != null) _inAppBrowser!.onWindowBlur();
+              return null;
+            case "onInjectedScriptLoaded":
+              String id = args[0];
+              var onLoadCallback = _injectedScriptsFromURL[id]?.onLoad;
+              if ((_webview != null || _inAppBrowser != null) &&
+                  onLoadCallback != null) {
+                onLoadCallback();
+              }
+              return null;
+            case "onInjectedScriptError":
+              String id = args[0];
+              var onErrorCallback = _injectedScriptsFromURL[id]?.onError;
+              if ((_webview != null || _inAppBrowser != null) &&
+                  onErrorCallback != null) {
+                onErrorCallback();
+              }
+              return null;
+          }
+
+          if (javaScriptHandlersMap.containsKey(handlerName)) {
+            // convert result to json
+            try {
+              return jsonEncode(
+                  await javaScriptHandlersMap[handlerName]!(args));
+            } catch (error) {
+              print(error);
+              return null;
+            }
+          }
+          break;
+        default:
+          throw UnimplementedError("Unimplemented ${call.method} method");
+      }
+    } catch (e) {
+      ExternalLogger.onException(e);
+      rethrow;
     }
     return null;
   }

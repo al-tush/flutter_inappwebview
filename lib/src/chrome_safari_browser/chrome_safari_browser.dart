@@ -6,6 +6,8 @@ import 'package:flutter_inappwebview/src/util.dart';
 
 import 'chrome_safari_browser_options.dart';
 
+import '../external_logger.dart';
+
 class ChromeSafariBrowserAlreadyOpenedException implements Exception {
   final dynamic message;
 
@@ -55,27 +57,32 @@ class ChromeSafariBrowser {
   }
 
   Future<dynamic> handleMethod(MethodCall call) async {
-    switch (call.method) {
-      case "onChromeSafariBrowserOpened":
-        onOpened();
-        break;
-      case "onChromeSafariBrowserCompletedInitialLoad":
-        onCompletedInitialLoad();
-        break;
-      case "onChromeSafariBrowserClosed":
-        onClosed();
-        this._isOpened = false;
-        break;
-      case "onChromeSafariBrowserMenuItemActionPerform":
-        String url = call.arguments["url"];
-        String title = call.arguments["title"];
-        int id = call.arguments["id"].toInt();
-        if (this._menuItems[id] != null) {
-          this._menuItems[id]!.action(url, title);
-        }
-        break;
-      default:
-        throw UnimplementedError("Unimplemented ${call.method} method");
+    try {
+      switch (call.method) {
+        case "onChromeSafariBrowserOpened":
+          onOpened();
+          break;
+        case "onChromeSafariBrowserCompletedInitialLoad":
+          onCompletedInitialLoad();
+          break;
+        case "onChromeSafariBrowserClosed":
+          onClosed();
+          this._isOpened = false;
+          break;
+        case "onChromeSafariBrowserMenuItemActionPerform":
+          String url = call.arguments["url"];
+          String title = call.arguments["title"];
+          int id = call.arguments["id"].toInt();
+          if (this._menuItems[id] != null) {
+            this._menuItems[id]!.action(url, title);
+          }
+          break;
+        default:
+          throw UnimplementedError("Unimplemented ${call.method} method");
+      }
+    } catch (e) {
+      ExternalLogger.onException(e);
+      rethrow;
     }
   }
 

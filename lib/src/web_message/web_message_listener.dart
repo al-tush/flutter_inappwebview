@@ -1,5 +1,6 @@
 import 'package:flutter/services.dart';
 import '../in_app_webview/in_app_webview_controller.dart';
+import '../external_logger.dart';
 import '../types.dart';
 
 ///This listener receives messages sent on the JavaScript object which was injected by [InAppWebViewController.addWebMessageListener].
@@ -40,22 +41,27 @@ class WebMessageListener {
   }
 
   Future<dynamic> handleMethod(MethodCall call) async {
-    switch (call.method) {
-      case "onPostMessage":
-        if (_replyProxy == null) {
-          _replyProxy = new JavaScriptReplyProxy(this);
-        }
-        if (onPostMessage != null) {
-          String? message = call.arguments["message"];
-          Uri? sourceOrigin = call.arguments["sourceOrigin"] != null
-              ? Uri.parse(call.arguments["sourceOrigin"])
-              : null;
-          bool isMainFrame = call.arguments["isMainFrame"];
-          onPostMessage!(message, sourceOrigin, isMainFrame, _replyProxy!);
-        }
-        break;
-      default:
-        throw UnimplementedError("Unimplemented ${call.method} method");
+    try {
+      switch (call.method) {
+        case "onPostMessage":
+          if (_replyProxy == null) {
+            _replyProxy = new JavaScriptReplyProxy(this);
+          }
+          if (onPostMessage != null) {
+            String? message = call.arguments["message"];
+            Uri? sourceOrigin = call.arguments["sourceOrigin"] != null
+                ? Uri.parse(call.arguments["sourceOrigin"])
+                : null;
+            bool isMainFrame = call.arguments["isMainFrame"];
+            onPostMessage!(message, sourceOrigin, isMainFrame, _replyProxy!);
+          }
+          break;
+        default:
+          throw UnimplementedError("Unimplemented ${call.method} method");
+      }
+    } catch (e) {
+      ExternalLogger.onException(e);
+      rethrow;
     }
     return null;
   }

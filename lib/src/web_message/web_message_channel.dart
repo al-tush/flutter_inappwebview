@@ -1,4 +1,5 @@
 import 'package:flutter/services.dart';
+import '../external_logger.dart';
 import '../types.dart';
 import '../in_app_webview/in_app_webview_controller.dart';
 
@@ -36,17 +37,22 @@ class WebMessageChannel {
   }
 
   Future<dynamic> handleMethod(MethodCall call) async {
-    switch (call.method) {
-      case "onMessage":
-        int index = call.arguments["index"];
-        var port = index == 0 ? this.port1 : this.port2;
-        if (port._onMessage != null) {
-          String? message = call.arguments["message"];
-          port._onMessage!(message);
-        }
-        break;
-      default:
-        throw UnimplementedError("Unimplemented ${call.method} method");
+    try {
+      switch (call.method) {
+        case "onMessage":
+          int index = call.arguments["index"];
+          var port = index == 0 ? this.port1 : this.port2;
+          if (port._onMessage != null) {
+            String? message = call.arguments["message"];
+            port._onMessage!(message);
+          }
+          break;
+        default:
+          throw UnimplementedError("Unimplemented ${call.method} method");
+      }
+    } catch (e) {
+      ExternalLogger.onException(e);
+      rethrow;
     }
     return null;
   }

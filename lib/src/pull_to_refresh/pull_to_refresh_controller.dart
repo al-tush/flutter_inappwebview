@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/services.dart';
 import '../in_app_webview/webview.dart';
 import '../in_app_browser/in_app_browser.dart';
+import '../external_logger.dart';
 import '../util.dart';
 import '../types.dart';
 import '../in_app_webview/android/in_app_webview_options.dart';
@@ -27,12 +28,17 @@ class PullToRefreshController {
   }
 
   Future<dynamic> handleMethod(MethodCall call) async {
-    switch (call.method) {
-      case "onRefresh":
-        if (onRefresh != null) onRefresh!();
-        break;
-      default:
-        throw UnimplementedError("Unimplemented ${call.method} method");
+    try {
+      switch (call.method) {
+        case "onRefresh":
+          if (onRefresh != null) onRefresh!();
+          break;
+        default:
+          throw UnimplementedError("Unimplemented ${call.method} method");
+      }
+    } catch (e) {
+      ExternalLogger.onException(e);
+      rethrow;
     }
     return null;
   }
