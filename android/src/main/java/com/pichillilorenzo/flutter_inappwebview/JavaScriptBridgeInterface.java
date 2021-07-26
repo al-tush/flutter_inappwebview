@@ -80,6 +80,7 @@ public class JavaScriptBridgeInterface {
               inAppWebView.callAsyncJavaScriptCallbacks.remove(resultUuid);
             }
           } catch (JSONException e) {
+            Util.onException(e);
             e.printStackTrace();
           }
           return;
@@ -94,6 +95,7 @@ public class JavaScriptBridgeInterface {
               inAppWebView.evaluateJavaScriptContentWorldCallbacks.remove(resultUuid);
             }
           } catch (JSONException e) {
+            Util.onException(e);
             e.printStackTrace();
           }
           return;

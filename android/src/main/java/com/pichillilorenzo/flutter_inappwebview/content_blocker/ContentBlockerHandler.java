@@ -51,6 +51,7 @@ public class ContentBlockerHandler {
         try {
             u = new URI(url);
         } catch (URISyntaxException e) {
+            Util.onException(e);
             String[] urlSplitted = url.split(":");
             String scheme = urlSplitted[0];
             URL tempUrl = new URL(url.replace(scheme, "https"));
@@ -198,6 +199,7 @@ public class ContentBlockerHandler {
                                 return new WebResourceResponse(contentType, encoding, dataStream);
 
                             } catch (Exception e) {
+                                Util.onException(e);
                                 e.printStackTrace();
                                 if (response != null) {
                                     response.body().close();
@@ -247,6 +249,7 @@ public class ContentBlockerHandler {
                 }
 
             } catch (Exception e) {
+                Util.onException(e);
                 if (response != null) {
                     response.body().close();
                     response.close();

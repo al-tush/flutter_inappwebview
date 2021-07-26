@@ -609,6 +609,7 @@ final public class InAppWebView extends InputAwareWebView {
             try {
               compressFormat = Bitmap.CompressFormat.valueOf((String) screenshotConfiguration.get("compressFormat"));
             } catch (IllegalArgumentException e) {
+              Util.onException(e);
               e.printStackTrace();
             }
 
@@ -623,12 +624,14 @@ final public class InAppWebView extends InputAwareWebView {
           try {
             byteArrayOutputStream.close();
           } catch (IOException e) {
+            Util.onException(e);
             e.printStackTrace();
           }
           resized.recycle();
           result.success(byteArrayOutputStream.toByteArray());
 
         } catch (IllegalArgumentException e) {
+          Util.onException(e);
           e.printStackTrace();
           result.success(null);
         }

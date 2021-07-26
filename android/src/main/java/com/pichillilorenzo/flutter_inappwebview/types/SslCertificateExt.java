@@ -53,12 +53,14 @@ public class SslCertificateExt extends SslCertificate {
           x509CertificateData = certificate.getEncoded();
         }
       } catch (CertificateEncodingException e) {
+        Util.onException(e);
         e.printStackTrace();
       }
     } else {
       try {
         x509CertificateData = Util.getX509CertFromSslCertHack(sslCertificate).getEncoded();
       } catch (CertificateEncodingException e) {
+        Util.onException(e);
         e.printStackTrace();
       }
     }

@@ -344,6 +344,7 @@ public class InAppWebViewClient extends WebViewClient {
     try {
       uri = new URI(view.getUrl());
     } catch (URISyntaxException e) {
+      Util.onException(e);
       e.printStackTrace();
 
       credentialsProposed = null;
@@ -434,6 +435,7 @@ public class InAppWebViewClient extends WebViewClient {
     try {
       uri = new URI(sslError.getUrl());
     } catch (URISyntaxException e) {
+      Util.onException(e);
       e.printStackTrace();
       handler.cancel();
       return;
@@ -491,6 +493,7 @@ public class InAppWebViewClient extends WebViewClient {
     try {
       uri = new URI(view.getUrl());
     } catch (URISyntaxException e) {
+      Util.onException(e);
       e.printStackTrace();
       request.cancel();
       return;
@@ -622,12 +625,14 @@ public class InAppWebViewClient extends WebViewClient {
     try {
       uri = new URI(url);
     } catch (URISyntaxException uriExpection) {
+      Util.onException(uriExpection);
       String[] urlSplitted = url.split(":");
       String scheme = urlSplitted[0];
       try {
         URL tempUrl = new URL(url.replace(scheme, "https"));
         uri = new URI(scheme, tempUrl.getUserInfo(), tempUrl.getHost(), tempUrl.getPort(), tempUrl.getPath(), tempUrl.getQuery(), tempUrl.getRef());
       } catch (Exception e) {
+        Util.onException(e);
         e.printStackTrace();
         return null;
       }
@@ -643,6 +648,7 @@ public class InAppWebViewClient extends WebViewClient {
       try {
         flutterResult = Util.invokeMethodAndWait(channel, "onLoadResourceCustomScheme", obj);
       } catch (InterruptedException e) {
+        Util.onException(e);
         e.printStackTrace();
         return null;
       }
@@ -656,6 +662,7 @@ public class InAppWebViewClient extends WebViewClient {
         try {
           response = webView.contentBlockerHandler.checkUrl(webView, url, res.get("contentType").toString());
         } catch (Exception e) {
+          Util.onException(e);
           e.printStackTrace();
         }
         if (response != null)
@@ -670,6 +677,7 @@ public class InAppWebViewClient extends WebViewClient {
       try {
         response = webView.contentBlockerHandler.checkUrl(webView, url);
       } catch (Exception e) {
+        Util.onException(e);
         e.printStackTrace();
       }
     }
@@ -722,6 +730,7 @@ public class InAppWebViewClient extends WebViewClient {
     try {
       flutterResult = Util.invokeMethodAndWait(channel, "shouldInterceptRequest", obj);
     } catch (InterruptedException e) {
+      Util.onException(e);
       e.printStackTrace();
       return null;
     }

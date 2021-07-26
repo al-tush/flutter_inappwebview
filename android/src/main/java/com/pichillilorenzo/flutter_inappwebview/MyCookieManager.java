@@ -106,6 +106,7 @@ public class MyCookieManager implements MethodChannel.MethodCallHandler {
         // https://bugs.chromium.org/p/chromium/issues/detail?id=559720
         return null;
       } catch (Exception exception) {
+        Util.onException(exception);
         String message = exception.getMessage();
         // We cannot catch MissingWebViewPackageException as it is in a private / system API
         // class. This validates the exception's message to ensure we are only handling this

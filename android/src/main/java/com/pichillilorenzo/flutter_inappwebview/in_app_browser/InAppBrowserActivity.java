@@ -136,6 +136,7 @@ public class InAppBrowserActivity extends AppCompatActivity implements InAppBrow
         try {
           webView.loadFile(initialFile);
         } catch (IOException e) {
+          Util.onException(e);
           e.printStackTrace();
           Log.e(LOG_TAG, initialFile + " asset file cannot be found!", e);
           return;
@@ -316,6 +317,7 @@ public class InAppBrowserActivity extends AppCompatActivity implements InAppBrow
       openActivity.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
       startActivityIfNeeded(openActivity, 0);
     } catch (ClassNotFoundException e) {
+      Util.onException(e);
       e.printStackTrace();
       Log.d(LOG_TAG, e.getMessage());
     }

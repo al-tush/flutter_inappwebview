@@ -84,6 +84,7 @@ public class InAppWebViewMethodHandler implements MethodChannel.MethodCallHandle
           try {
             webView.loadFile(assetFilePath);
           } catch (IOException e) {
+            Util.onException(e);
             e.printStackTrace();
             result.error(LOG_TAG, e.getMessage(), null);
             return;
@@ -539,6 +540,7 @@ public class InAppWebViewMethodHandler implements MethodChannel.MethodCallHandle
             WebViewCompat.postWebMessage(webView, webMessage, Uri.parse(targetOrigin));
             result.success(true);
           } catch (Exception e) {
+            Util.onException(e);
             result.error(LOG_TAG, e.getMessage(), null);
           }
         } else {
@@ -553,6 +555,7 @@ public class InAppWebViewMethodHandler implements MethodChannel.MethodCallHandle
             webView.addWebMessageListener(webMessageListener);
             result.success(true);
           } catch (Exception e) {
+            Util.onException(e);
             result.error(LOG_TAG, e.getMessage(), null);
           }
         } else {

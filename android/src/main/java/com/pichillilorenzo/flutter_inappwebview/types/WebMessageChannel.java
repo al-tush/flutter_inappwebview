@@ -7,6 +7,7 @@ import androidx.webkit.WebMessagePortCompat;
 import androidx.webkit.WebViewCompat;
 import androidx.webkit.WebViewFeature;
 
+import com.pichillilorenzo.flutter_inappwebview.Util;
 import com.pichillilorenzo.flutter_inappwebview.in_app_webview.InAppWebView;
 
 import java.util.ArrayList;
@@ -56,6 +57,7 @@ public class WebMessageChannel implements MethodChannel.MethodCallHandler {
             });
             result.success(true);
           } catch (Exception e) {
+            Util.onException(e);
             result.error(LOG_TAG, e.getMessage(), null);
           }
         } else {
@@ -85,6 +87,7 @@ public class WebMessageChannel implements MethodChannel.MethodCallHandler {
             port.postMessage(webMessage);
             result.success(true);
           } catch (Exception e) {
+            Util.onException(e);
             result.error(LOG_TAG, e.getMessage(), null);
           }
         } else {
@@ -100,6 +103,7 @@ public class WebMessageChannel implements MethodChannel.MethodCallHandler {
             port.close();
             result.success(true);
           } catch (Exception e) {
+            Util.onException(e);
             result.error(LOG_TAG, e.getMessage(), null);
           }
         } else {

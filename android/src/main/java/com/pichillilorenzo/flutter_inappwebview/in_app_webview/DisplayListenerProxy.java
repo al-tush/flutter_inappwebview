@@ -6,6 +6,9 @@ import android.annotation.TargetApi;
 import android.hardware.display.DisplayManager;
 import android.os.Build;
 import android.util.Log;
+
+import com.pichillilorenzo.flutter_inappwebview.Util;
+
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 
@@ -115,6 +118,7 @@ class DisplayListenerProxy {
             }
             return listeners;
         } catch (NoSuchFieldException | IllegalAccessException e) {
+            Util.onException(e);
             Log.w(TAG, "Could not extract WebView's display listeners. " + e);
             return new ArrayList<>();
         }

@@ -11,6 +11,8 @@ import android.util.Log;
 
 import androidx.browser.customtabs.CustomTabsService;
 
+import com.pichillilorenzo.flutter_inappwebview.Util;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -114,6 +116,7 @@ public class CustomTabsHelper {
                 return true;
             }
         } catch (RuntimeException e) {
+            Util.onException(e);
             Log.e(TAG, "Runtime exception while getting specialized handlers");
         }
         return false;

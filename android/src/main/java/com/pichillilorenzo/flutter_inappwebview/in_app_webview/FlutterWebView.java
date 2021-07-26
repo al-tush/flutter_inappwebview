@@ -19,6 +19,7 @@ import androidx.webkit.WebViewFeature;
 
 import com.pichillilorenzo.flutter_inappwebview.InAppWebViewFlutterPlugin;
 import com.pichillilorenzo.flutter_inappwebview.InAppWebViewMethodHandler;
+import com.pichillilorenzo.flutter_inappwebview.Util;
 import com.pichillilorenzo.flutter_inappwebview.plugin_scripts_js.JavaScriptBridgeJS;
 import com.pichillilorenzo.flutter_inappwebview.pull_to_refresh.PullToRefreshLayout;
 import com.pichillilorenzo.flutter_inappwebview.pull_to_refresh.PullToRefreshOptions;
@@ -116,6 +117,7 @@ public class FlutterWebView implements PlatformView {
         try {
           webView.loadFile(initialFile);
         } catch (IOException e) {
+          Util.onException(e);
           e.printStackTrace();
           Log.e(LOG_TAG, initialFile + " asset file cannot be found!", e);
         }

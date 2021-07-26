@@ -10,6 +10,7 @@ import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
@@ -52,6 +53,17 @@ public class Util {
 
   private Util() {}
 
+  static @Nullable ExternalLogger externalLogger;
+
+  public static void setExternalLogger(@Nullable ExternalLogger logger) {
+    externalLogger = logger;
+  }
+
+  public static void onException(@NonNull Exception e) {
+    if (externalLogger == null) return;
+    externalLogger.onException(e);
+  }
+
   public static String getUrlAsset(InAppWebViewFlutterPlugin plugin, String assetFilePath) throws IOException {
     String key = (plugin.registrar != null) ? plugin.registrar.lookupKeyForAsset(assetFilePath) : plugin.flutterAssets.getAssetFilePathByName(assetFilePath);
     InputStream is = null;
@@ -71,6 +83,7 @@ public class Util {
       }
     }
     if (e != null) {
+      Util.onException(e);
       throw e;
     }
 
@@ -154,6 +167,7 @@ public class Util {
       }
       certificateFileStream.close();
     } catch (Exception e) {
+      Util.onException(e);
       e.printStackTrace();
       Log.e(LOG_TAG, e.getMessage());
     }
@@ -214,6 +228,7 @@ public class Util {
               .build();
       return okHttpClient;
     } catch (Exception e) {
+      Util.onException(e);
       throw new RuntimeException(e);
     }
   }
@@ -237,6 +252,7 @@ public class Util {
         Certificate cert = certFactory.generateCertificate(new ByteArrayInputStream(bytes));
         x509Certificate = (X509Certificate) cert;
       } catch (CertificateException e) {
+        Util.onException(e);
         x509Certificate = null;
       }
     }
@@ -286,5 +302,9 @@ public class Util {
 
   public static float getPixelDensity(Context context) {
     return context.getResources().getDisplayMetrics().density;
+  }
+
+  public interface ExternalLogger {
+    void onException(@NonNull Exception exception);
   }
 }

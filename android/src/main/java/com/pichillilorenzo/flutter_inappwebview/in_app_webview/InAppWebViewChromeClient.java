@@ -39,6 +39,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 
+import com.pichillilorenzo.flutter_inappwebview.Util;
 import com.pichillilorenzo.flutter_inappwebview.types.CreateWindowAction;
 import com.pichillilorenzo.flutter_inappwebview.in_app_browser.ActivityResultListener;
 import com.pichillilorenzo.flutter_inappwebview.in_app_browser.InAppBrowserDelegate;
@@ -729,6 +730,7 @@ public class InAppWebViewChromeClient extends WebChromeClient implements PluginR
     try {
       byteArrayOutputStream.close();
     } catch (IOException e) {
+      Util.onException(e);
       e.printStackTrace();
       String errorMessage = e.getMessage();
       if (errorMessage != null) {
@@ -857,6 +859,7 @@ public class InAppWebViewChromeClient extends WebChromeClient implements PluginR
       length = descriptor.getLength();
       descriptor.close();
     } catch (IOException e) {
+      Util.onException(e);
       return false;
     }
 
@@ -940,6 +943,7 @@ public class InAppWebViewChromeClient extends WebChromeClient implements PluginR
         needed = true;
       }
     } catch (PackageManager.NameNotFoundException e) {
+      Util.onException(e);
       needed = true;
     }
 
@@ -1064,6 +1068,7 @@ public class InAppWebViewChromeClient extends WebChromeClient implements PluginR
     try {
       capturedFile = getCapturedFile(intentType);
     } catch (IOException e) {
+      Util.onException(e);
       Log.e(LOG_TAG, "Error occurred while creating the File", e);
       e.printStackTrace();
     }

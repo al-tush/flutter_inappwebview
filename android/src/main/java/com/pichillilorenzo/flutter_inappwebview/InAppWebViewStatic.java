@@ -92,6 +92,7 @@ public class InAppWebViewStatic implements MethodChannel.MethodCallHandler {
             PackageInfo pInfo = (PackageInfo) method.invoke(null);
             result.success(convertWebViewPackageToMap(pInfo));
           } catch (Exception e) {
+            Util.onException(e);
             result.success(null);
           }
         } else {

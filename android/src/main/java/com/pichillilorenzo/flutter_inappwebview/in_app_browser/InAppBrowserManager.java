@@ -36,6 +36,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.pichillilorenzo.flutter_inappwebview.InAppWebViewFlutterPlugin;
+import com.pichillilorenzo.flutter_inappwebview.Util;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -120,6 +121,7 @@ public class InAppBrowserManager implements MethodChannel.MethodCallHandler {
       result.success(true);
       // not catching FileUriExposedException explicitly because buildtools<24 doesn't know about it
     } catch (java.lang.RuntimeException e) {
+      Util.onException(e);
       Log.d(LOG_TAG, url + " cannot be opened: " + e.toString());
       result.error(LOG_TAG, url + " cannot be opened!", null);
     }
