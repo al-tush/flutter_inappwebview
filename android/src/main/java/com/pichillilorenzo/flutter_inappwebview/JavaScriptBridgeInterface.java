@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import io.flutter.plugin.common.MethodChannel;
+import timber.log.Timber;
 
 public class JavaScriptBridgeInterface {
   private static final String LOG_TAG = "JSBridgeInterface";
@@ -80,7 +81,7 @@ public class JavaScriptBridgeInterface {
               inAppWebView.callAsyncJavaScriptCallbacks.remove(resultUuid);
             }
           } catch (JSONException e) {
-            e.printStackTrace();
+            Timber.w(e);
           }
           return;
         } else if (handlerName.equals("evaluateJavaScriptWithContentWorld")) {
@@ -94,7 +95,7 @@ public class JavaScriptBridgeInterface {
               inAppWebView.evaluateJavaScriptContentWorldCallbacks.remove(resultUuid);
             }
           } catch (JSONException e) {
-            e.printStackTrace();
+            Timber.w(e);
           }
           return;
         }

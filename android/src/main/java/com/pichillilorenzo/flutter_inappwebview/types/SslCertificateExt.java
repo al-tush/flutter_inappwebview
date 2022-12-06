@@ -12,6 +12,8 @@ import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.Map;
 
+import timber.log.Timber;
+
 public class SslCertificateExt extends SslCertificate {
 
   private SslCertificateExt(X509Certificate certificate) {
@@ -53,13 +55,13 @@ public class SslCertificateExt extends SslCertificate {
           x509CertificateData = certificate.getEncoded();
         }
       } catch (CertificateEncodingException e) {
-        e.printStackTrace();
+        Timber.w(e);
       }
     } else {
       try {
         x509CertificateData = Util.getX509CertFromSslCertHack(sslCertificate).getEncoded();
       } catch (CertificateEncodingException e) {
-        e.printStackTrace();
+        Timber.w(e);
       }
     }
 

@@ -48,6 +48,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 
 import io.flutter.plugin.common.MethodChannel;
+import timber.log.Timber;
 
 public class InAppWebViewClient extends WebViewClient {
 
@@ -338,7 +339,7 @@ public class InAppWebViewClient extends WebViewClient {
         protocol = uri.getScheme();
         port = uri.getPort();
       } catch (URISyntaxException e) {
-        e.printStackTrace();
+        Timber.w(e);
       }
     }
 
@@ -423,7 +424,7 @@ public class InAppWebViewClient extends WebViewClient {
       protocol = uri.getScheme();
       port = uri.getPort();
     } catch (URISyntaxException e) {
-      e.printStackTrace();
+      Timber.w(e);
     }
 
     URLProtectionSpace protectionSpace = new URLProtectionSpace(host, protocol, realm, port, sslError.getCertificate(), sslError);
@@ -477,7 +478,7 @@ public class InAppWebViewClient extends WebViewClient {
         URI uri = new URI(url);
         protocol = uri.getScheme();
       } catch (URISyntaxException e) {
-        e.printStackTrace();
+        Timber.w(e);
       }
     }
 
@@ -607,8 +608,8 @@ public class InAppWebViewClient extends WebViewClient {
       try {
         URL tempUrl = new URL(url.replace(scheme, "https"));
         uri = new URI(scheme, tempUrl.getUserInfo(), tempUrl.getHost(), tempUrl.getPort(), tempUrl.getPath(), tempUrl.getQuery(), tempUrl.getRef());
-      } catch (Exception e) {
-        e.printStackTrace();
+      } catch (Throwable e) {
+        Timber.e(e);
         return null;
       }
     }
@@ -623,7 +624,7 @@ public class InAppWebViewClient extends WebViewClient {
       try {
         flutterResult = Util.invokeMethodAndWait(channel, "onLoadResourceCustomScheme", obj);
       } catch (InterruptedException e) {
-        e.printStackTrace();
+        Timber.e(e);
         return null;
       }
 
@@ -635,8 +636,8 @@ public class InAppWebViewClient extends WebViewClient {
         WebResourceResponse response = null;
         try {
           response = webView.contentBlockerHandler.checkUrl(webView, url, res.get("contentType").toString());
-        } catch (Exception e) {
-          e.printStackTrace();
+        } catch (Throwable e) {
+          Timber.e(e);
         }
         if (response != null)
           return response;
@@ -649,8 +650,8 @@ public class InAppWebViewClient extends WebViewClient {
     if (webView.contentBlockerHandler.getRuleList().size() > 0) {
       try {
         response = webView.contentBlockerHandler.checkUrl(webView, url);
-      } catch (Exception e) {
-        e.printStackTrace();
+      } catch (Throwable e) {
+        Timber.w(e);
       }
     }
     return response;
@@ -702,7 +703,7 @@ public class InAppWebViewClient extends WebViewClient {
     try {
       flutterResult = Util.invokeMethodAndWait(channel, "shouldInterceptRequest", obj);
     } catch (InterruptedException e) {
-      e.printStackTrace();
+      Timber.w(e);
       return null;
     }
 

@@ -136,7 +136,7 @@ public class ServiceWorkerManager implements MethodChannel.MethodCallHandler {
           try {
             flutterResult = Util.invokeMethodAndWait(channel, "shouldInterceptRequest", obj);
           } catch (InterruptedException e) {
-            e.printStackTrace();
+            Timber.w(e);
             return null;
           }
 

@@ -174,7 +174,7 @@ public class Util {
       }
       certificateFileStream.close();
     } catch (Exception e) {
-      e.printStackTrace();
+      Timber.w(e);
       Log.e(LOG_TAG, e.getMessage());
     } finally {
       if (certificateFileStream != null) {

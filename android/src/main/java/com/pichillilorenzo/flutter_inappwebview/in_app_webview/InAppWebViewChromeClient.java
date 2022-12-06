@@ -57,6 +57,7 @@ import java.util.Map;
 
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.PluginRegistry;
+import timber.log.Timber;
 
 import static android.app.Activity.RESULT_OK;
 
@@ -744,7 +745,7 @@ public class InAppWebViewChromeClient extends WebChromeClient implements PluginR
     try {
       byteArrayOutputStream.close();
     } catch (IOException e) {
-      e.printStackTrace();
+      Timber.w(e);
       String errorMessage = e.getMessage();
       if (errorMessage != null) {
         Log.e(LOG_TAG, errorMessage);
@@ -1128,7 +1129,7 @@ public class InAppWebViewChromeClient extends WebChromeClient implements PluginR
       capturedFile = getCapturedFile(intentType);
     } catch (IOException e) {
       Log.e(LOG_TAG, "Error occurred while creating the File", e);
-      e.printStackTrace();
+      Timber.w(e);
     }
 
     // for versions below 6.0 (23) we use the old File creation & permissions model

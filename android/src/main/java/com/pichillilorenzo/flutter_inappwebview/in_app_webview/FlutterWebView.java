@@ -107,7 +107,7 @@ public class FlutterWebView implements PlatformWebView {
         try {
           webView.loadFile(initialFile);
         } catch (IOException e) {
-          e.printStackTrace();
+          Timber.w(e);
           Log.e(LOG_TAG, initialFile + " asset file cannot be found!", e);
         }
       }

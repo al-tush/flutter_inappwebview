@@ -24,6 +24,7 @@ import javax.net.ssl.SSLHandshakeException;
 
 import okhttp3.Request;
 import okhttp3.Response;
+import timber.log.Timber;
 
 public class ContentBlockerHandler {
     protected static final String LOG_TAG = "ContentBlockerHandler";
@@ -204,7 +205,7 @@ public class ContentBlockerHandler {
                                     response.close();
                                 }
                                 if (!(e instanceof SSLHandshakeException)) {
-                                    e.printStackTrace();
+                                    Timber.w(e);
                                     Log.e(LOG_TAG, e.getMessage());
                                 }
                             }
@@ -255,7 +256,7 @@ public class ContentBlockerHandler {
                     response.close();
                 }
                 if (!(e instanceof SSLHandshakeException)) {
-                    e.printStackTrace();
+                    Timber.w(e);
                     Log.e(LOG_TAG, e.getMessage());
                 }
             }

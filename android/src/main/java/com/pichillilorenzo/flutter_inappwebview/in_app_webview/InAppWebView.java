@@ -97,6 +97,7 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 
 import io.flutter.plugin.common.MethodChannel;
+import timber.log.Timber;
 
 import static android.content.Context.INPUT_METHOD_SERVICE;
 import static com.pichillilorenzo.flutter_inappwebview.types.PreferredContentModeOptionType.fromValue;
@@ -622,7 +623,7 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
             try {
               compressFormat = Bitmap.CompressFormat.valueOf((String) screenshotConfiguration.get("compressFormat"));
             } catch (IllegalArgumentException e) {
-              e.printStackTrace();
+              Timber.w(e);
             }
 
             quality = (Integer) screenshotConfiguration.get("quality");
@@ -636,13 +637,13 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
           try {
             byteArrayOutputStream.close();
           } catch (IOException e) {
-            e.printStackTrace();
+            Timber.w(e);
           }
           screenshotBitmap.recycle();
           result.success(byteArrayOutputStream.toByteArray());
 
         } catch (IllegalArgumentException e) {
-          e.printStackTrace();
+          Timber.w(e);
           result.success(null);
         }
       }

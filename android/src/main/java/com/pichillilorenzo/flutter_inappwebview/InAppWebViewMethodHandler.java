@@ -88,7 +88,7 @@ public class InAppWebViewMethodHandler implements MethodChannel.MethodCallHandle
           try {
             webView.loadFile(assetFilePath);
           } catch (IOException e) {
-            e.printStackTrace();
+            Timber.w(e);
             result.error(LOG_TAG, e.getMessage(), null);
             return;
           }
