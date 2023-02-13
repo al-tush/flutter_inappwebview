@@ -70,6 +70,7 @@ open class DSInAppWebViewClient(
             val response = newRequest?.let { getClient().newCall(newRequest).execute() }
 
             if (inAppWebView.options.proxyHost.isEmpty()) {
+                response?.body?.close();
                 return null
             }
 
