@@ -185,7 +185,7 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
     inAppWebViewChromeClient = new InAppWebViewChromeClient(plugin, channel, inAppBrowserDelegate);
     setWebChromeClient(inAppWebViewChromeClient);
 
-    inAppWebViewClient = new InAppWebViewClient(channel, inAppBrowserDelegate);
+    inAppWebViewClient = new DSInAppWebViewClient(this, channel, inAppBrowserDelegate);
     setWebViewClient(inAppWebViewClient);
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && WebViewFeature.isFeatureSupported(WebViewFeature.WEB_VIEW_RENDERER_CLIENT_BASIC_USAGE)) {

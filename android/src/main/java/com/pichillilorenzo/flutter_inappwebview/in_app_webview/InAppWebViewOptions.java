@@ -109,6 +109,10 @@ public class InAppWebViewOptions implements Options<InAppWebViewInterface> {
   public String horizontalScrollbarThumbColor;
   @Nullable
   public String horizontalScrollbarTrackColor;
+  public String proxyHost;
+  public Integer proxyPort;
+  public String proxyLogin;
+  public String proxyPass;
 
   @Override
   public InAppWebViewOptions parse(Map<String, Object> options) {
@@ -363,6 +367,18 @@ public class InAppWebViewOptions implements Options<InAppWebViewInterface> {
         case "horizontalScrollbarTrackColor":
           horizontalScrollbarTrackColor = (String) value;
           break;
+        case "proxyHost":
+          proxyHost = (String) value;
+          break;
+        case "proxyPort":
+          proxyPort = (Integer) value;
+          break;
+        case "proxyLogin":
+          proxyLogin = (String) value;
+          break;
+        case "proxyPass":
+          proxyPass = (String) value;
+          break;
       }
     }
 
@@ -453,6 +469,10 @@ public class InAppWebViewOptions implements Options<InAppWebViewInterface> {
     options.put("verticalScrollbarTrackColor", verticalScrollbarTrackColor);
     options.put("horizontalScrollbarThumbColor", horizontalScrollbarThumbColor);
     options.put("horizontalScrollbarTrackColor", horizontalScrollbarTrackColor);
+    options.put("proxyHost", proxyHost);
+    options.put("proxyPort", proxyPort);
+    options.put("proxyLogin", proxyLogin);
+    options.put("proxyPass", proxyPass);
     return options;
   }
 

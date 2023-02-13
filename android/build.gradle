@@ -2,6 +2,7 @@ group 'com.pichillilorenzo.flutter_inappwebview'
 version '1.0-SNAPSHOT'
 
 buildscript {
+    ext.kotlin_version = '1.6.10'
     repositories {
         google()
         mavenCentral()
@@ -9,6 +10,7 @@ buildscript {
 
     dependencies {
         classpath 'com.android.tools.build:gradle:4.1.0'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
 
@@ -20,12 +22,13 @@ rootProject.allprojects {
 }
 
 apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
 
 android {
     compileSdkVersion 33
 
     defaultConfig {
-        minSdkVersion 17
+        minSdkVersion 21
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         vectorDrawables.useSupportLibrary = true
@@ -45,10 +48,13 @@ android {
         }
     }
     dependencies {
+        implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+
         implementation 'androidx.webkit:webkit:1.5.0'
         implementation 'androidx.browser:browser:1.4.0'
         implementation 'androidx.appcompat:appcompat:1.5.1'
         implementation 'com.squareup.okhttp3:okhttp:4.9.0'
+        implementation 'com.squareup.okhttp3:okhttp-dnsoverhttps:4.9.0'
         implementation 'androidx.swiperefreshlayout:swiperefreshlayout:1.1.0'
         implementation 'com.jakewharton.timber:timber:5.0.1'
     }

@@ -239,6 +239,13 @@ class AndroidInAppWebViewOptions
   ///**NOTE**: available on Android 29+.
   Color? horizontalScrollbarTrackColor;
 
+  String proxyHost;
+  
+  int proxyPort;
+
+  String proxyLogin;
+  String proxyPass;
+
   AndroidInAppWebViewOptions({
     this.textZoom = 100,
     this.clearSessionCache = false,
@@ -296,6 +303,10 @@ class AndroidInAppWebViewOptions
     this.verticalScrollbarTrackColor,
     this.horizontalScrollbarThumbColor,
     this.horizontalScrollbarTrackColor,
+    this.proxyHost = '',
+    this.proxyPort = 0,
+    this.proxyLogin = '',
+    this.proxyPass = '',
   });
 
   @override
@@ -356,6 +367,10 @@ class AndroidInAppWebViewOptions
       "verticalScrollbarTrackColor": verticalScrollbarTrackColor?.toHex(),
       "horizontalScrollbarThumbColor": horizontalScrollbarThumbColor?.toHex(),
       "horizontalScrollbarTrackColor": horizontalScrollbarTrackColor?.toHex(),
+      "proxyHost": proxyHost,
+      "proxyPort": proxyPort,
+      "proxyLogin": proxyLogin,
+      "proxyPass": proxyPass,
     };
   }
 
@@ -430,6 +445,10 @@ class AndroidInAppWebViewOptions
         UtilColor.fromHex(map["horizontalScrollbarThumbColor"]);
     options.horizontalScrollbarTrackColor =
         UtilColor.fromHex(map["horizontalScrollbarTrackColor"]);
+    options.proxyHost = map["proxyHost"];
+    options.proxyPort = map["proxyPort"];
+    options.proxyLogin = map["proxyPass"];
+    options.proxyPass = map["proxyPass"];
     return options;
   }
 
