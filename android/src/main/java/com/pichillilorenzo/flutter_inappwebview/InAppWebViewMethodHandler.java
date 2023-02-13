@@ -34,6 +34,7 @@ import java.util.Map;
 
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
+import timber.log.Timber;
 
 public class InAppWebViewMethodHandler implements MethodChannel.MethodCallHandler {
   static final String LOG_TAG = "IAWMethodHandler";

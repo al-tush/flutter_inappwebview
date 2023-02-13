@@ -58,6 +58,7 @@ import javax.net.ssl.X509TrustManager;
 
 import io.flutter.plugin.common.MethodChannel;
 import okhttp3.OkHttpClient;
+import timber.log.Timber;
 
 public class Util {
 

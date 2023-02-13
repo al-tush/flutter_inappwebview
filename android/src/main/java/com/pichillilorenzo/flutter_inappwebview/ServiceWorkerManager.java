@@ -20,6 +20,7 @@ import java.util.Map;
 import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
+import timber.log.Timber;
 
 @RequiresApi(api = Build.VERSION_CODES.N)
 public class ServiceWorkerManager implements MethodChannel.MethodCallHandler {

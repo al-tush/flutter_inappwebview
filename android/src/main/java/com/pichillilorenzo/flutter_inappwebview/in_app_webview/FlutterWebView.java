@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 
 import io.flutter.plugin.common.MethodChannel;
+import timber.log.Timber;
 
 public class FlutterWebView implements PlatformWebView {
 
@@ -151,7 +152,7 @@ public class FlutterWebView implements PlatformWebView {
           webView.dispose();
           webView.destroy();
           webView = null;
-          
+
           if (pullToRefreshLayout != null) {
             pullToRefreshLayout.dispose();
             pullToRefreshLayout = null;
