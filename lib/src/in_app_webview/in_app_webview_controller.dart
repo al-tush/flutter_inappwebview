@@ -939,6 +939,13 @@ class InAppWebViewController {
           }
         }
         break;
+      case "androidOnVideoRequest":
+        if (_webview != null && _webview is InAppWebView && ((_webview as InAppWebView).androidOnVideoRequest != null)) {
+          String currentUrl = call.arguments["currentUrl"];
+          String url = call.arguments["url"];
+          (_webview as InAppWebView).androidOnVideoRequest!.call(this, currentUrl, url);
+        }
+        break;
       default:
         throw UnimplementedError("Unimplemented ${call.method} method");
     }

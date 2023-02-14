@@ -1,7 +1,8 @@
 package com.pichillilorenzo.flutter_inappwebview.in_app_webview
 
 import android.graphics.Bitmap
-import android.util.Log
+import android.os.Handler
+import android.os.Looper
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
@@ -12,7 +13,6 @@ import okhttp3.Headers.Companion.toHeaders
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.dnsoverhttps.DnsOverHttps
 import timber.log.Timber
-import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.IOException
 import java.net.*
@@ -21,7 +21,7 @@ import java.nio.charset.Charset
 
 open class DSInAppWebViewClient(
         val inAppWebView: InAppWebView,
-        channel: MethodChannel,
+        val channel: MethodChannel,
         inAppBrowserDelegate: InAppBrowserDelegate?,
 )
     : InAppWebViewClient(channel, inAppBrowserDelegate) {
@@ -41,7 +41,7 @@ open class DSInAppWebViewClient(
         //val pageUrl = currentUrl
         return try {
             if (webViewNetworkHandler == null) {
-                webViewNetworkHandler = WebViewNetworkHandler(inAppWebView)
+                webViewNetworkHandler = WebViewNetworkHandler(inAppWebView, this)
             }
             webViewNetworkHandler?.handleRequest(request)
         } catch (e: Throwable) {
@@ -52,6 +52,7 @@ open class DSInAppWebViewClient(
 
     class WebViewNetworkHandler(
             val inAppWebView: InAppWebView,
+            val webViewClient: DSInAppWebViewClient,
     ) {
         private var client: OkHttpClient? = null
         private var currentProxyHost: String = ""
@@ -103,16 +104,21 @@ open class DSInAppWebViewClient(
         }
 
         internal class VideoInterceptor(
-                val inAppWebView: InAppWebView,
+                private val webViewClient: DSInAppWebViewClient,
         ) : Interceptor {
             @Throws(IOException::class)
             override fun intercept(chain: Interceptor.Chain): Response {
                 val request = chain.request()
-//                val url = request.url.toString()
-//                Timber.d("interceptor: $url")
-//                Handlers.MAIN.post {
-//                    mediaDetector.onInterceptorRequest(InterceptorRequest(url), lightningView.url)
-//                }
+                val url = request.url.toString()
+                // Timber.d("interceptor: $url")
+                if (url.contains(".mp4") || url.contains(".m3u8")) {
+                    Handler(Looper.getMainLooper()).post {
+                        val obj: MutableMap<String, Any> = HashMap()
+                        obj["currentUrl"] = webViewClient.currentUrl
+                        obj["url"] = url
+                        webViewClient.channel.invokeMethod("androidOnVideoRequest", obj)
+                    }
+                }
                 return chain.proceed(request)
             }
         }
@@ -131,7 +137,7 @@ open class DSInAppWebViewClient(
             })
 
             val builder = OkHttpClient.Builder()
-                    .addNetworkInterceptor(VideoInterceptor(inAppWebView))
+                    .addNetworkInterceptor(VideoInterceptor(webViewClient))
                     .cache(appCache)
             if (inAppWebView.options.proxyHost.isNotEmpty()) {
                 builder.proxy(
