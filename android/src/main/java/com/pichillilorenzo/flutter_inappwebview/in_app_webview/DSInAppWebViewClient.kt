@@ -13,6 +13,7 @@ import okhttp3.Headers.Companion.toHeaders
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.dnsoverhttps.DnsOverHttps
 import timber.log.Timber
+import java.io.BufferedInputStream
 import java.io.File
 import java.io.IOException
 import java.net.*
@@ -75,17 +76,25 @@ open class DSInAppWebViewClient(
                 return null
             }
 
+            var respStream: BufferedInputStream? = null
+            response?.body?.let {
+                respStream = object : BufferedInputStream(it.byteStream()) {
+                    override fun close() {
+                        super.close()
+                        it.close()
+                    }
+                }
+            }
+
             return response?.let { resp ->
-                val res = WebResourceResponse(
+                WebResourceResponse(
                         resp.body?.contentType()?.let { "${it.type}/${it.subtype}" },
                         resp.body?.contentType()?.charset(Charset.defaultCharset())?.name(),
                         resp.code,
                         "OK",
                         resp.headers.toMap(),
-                        resp.body?.bytes()?.inputStream()
+                        respStream,
                 )
-                resp.body?.close()
-                res
             }
         }
 
@@ -128,7 +137,7 @@ open class DSInAppWebViewClient(
 
             Authenticator.setDefault(object : Authenticator() {
                 override fun getPasswordAuthentication(): PasswordAuthentication {
-                    Timber.d("getPasswordAuthentication ${inAppWebView.options.proxyLogin}")
+                    // Timber.d("getPasswordAuthentication ${inAppWebView.options.proxyLogin}")
                     return PasswordAuthentication(
                             inAppWebView.options.proxyLogin,
                             inAppWebView.options.proxyPass.toCharArray()
