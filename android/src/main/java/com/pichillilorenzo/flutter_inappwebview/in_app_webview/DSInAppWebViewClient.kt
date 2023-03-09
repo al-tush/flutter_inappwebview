@@ -69,7 +69,19 @@ open class DSInAppWebViewClient(
                         .build()
             }
 
-            val response = newRequest?.let { getClient().newCall(newRequest).execute() }
+            val response = try {
+                newRequest?.let { getClient().newCall(newRequest).execute() }
+            } catch (e: IOException) {
+                Timber.e(e)
+                Handler(Looper.getMainLooper()).post {
+                    val obj: MutableMap<String, Any> = HashMap()
+                    obj["errorText"] = e.message ?: ""
+                    obj["currentUrl"] = webViewClient.currentUrl
+                    obj["url"] = url
+                    webViewClient.channel.invokeMethod("androidOnIOException", obj)
+                }
+                null
+            }
 
             if (inAppWebView.options.proxyHost.isEmpty()) {
                 response?.body?.close();
@@ -146,7 +158,7 @@ open class DSInAppWebViewClient(
             })
 
             val builder = OkHttpClient.Builder()
-                    .addNetworkInterceptor(VideoInterceptor(webViewClient))
+                .addNetworkInterceptor(VideoInterceptor(webViewClient))
                     .cache(appCache)
             if (inAppWebView.options.proxyHost.isNotEmpty()) {
                 builder.proxy(

@@ -95,6 +95,7 @@ class InAppWebView extends StatefulWidget implements WebView {
     this.androidOnJsBeforeUnload,
     this.androidOnReceivedLoginRequest,
     this.androidOnVideoRequest,
+    this.androidOnIOException,
     this.iosOnWebContentProcessDidTerminate,
     this.iosOnDidReceiveServerRedirectForProvisionalNavigation,
     this.iosOnNavigationResponse,
@@ -375,6 +376,10 @@ class InAppWebView extends StatefulWidget implements WebView {
   final void Function(
       InAppWebViewController controller, String currentUrl, String url)?
   androidOnVideoRequest;
+
+  final void Function(
+      InAppWebViewController controller, String currentUrl, String url, String errorText)?
+  androidOnIOException;
 }
 
 class _InAppWebViewState extends State<InAppWebView> {
