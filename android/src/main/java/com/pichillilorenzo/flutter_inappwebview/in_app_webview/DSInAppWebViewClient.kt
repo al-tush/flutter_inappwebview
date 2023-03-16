@@ -58,19 +58,27 @@ open class DSInAppWebViewClient(
         private var client: OkHttpClient? = null
         private var currentProxyHost: String = ""
 
-        fun handleRequest(webResourceRequest: WebResourceRequest?): WebResourceResponse? {
-            val url: String = webResourceRequest?.url.toString()
-            val headers: Headers? = webResourceRequest?.requestHeaders?.toHeaders()
+        fun handleRequest(req: WebResourceRequest?): WebResourceResponse? {
+            if (req == null) return null
+            // https://groups.google.com/a/chromium.org/g/android-webview-dev/c/xnZnmZJMLh0
+            if (req.method == "POST") return null
 
-            val newRequest = headers?.let {
-                Request.Builder()
+            val url = req.url.toString()
+            val headers = (req.requestHeaders ?: emptyMap()).toMutableMap()
+
+            // https://gitlab.com/video-downloader-new-flutter/video-downloade-new-flutter/-/issues/116
+            //headers["sec-fetch-dest"] = "document"
+            headers["sec-fetch-mode"] = "navigate"
+            headers["sec-fetch-site"] = "none"
+            headers["sec-fetch-user"] = "?1"
+
+            val newRequest = Request.Builder()
                         .url(url)
-                        .headers(it)
+                        .headers(headers.toHeaders())
                         .build()
-            }
 
             val response = try {
-                newRequest?.let { getClient().newCall(newRequest).execute() }
+                getClient().newCall(newRequest).execute()
             } catch (e: IOException) {
                 Timber.e(e)
                 Handler(Looper.getMainLooper()).post {
@@ -81,11 +89,6 @@ open class DSInAppWebViewClient(
                     webViewClient.channel.invokeMethod("androidOnIOException", obj)
                 }
                 null
-            }
-
-            if (inAppWebView.options.proxyHost.isEmpty()) {
-                response?.body?.close();
-                return null
             }
 
             var respStream: BufferedInputStream? = null
