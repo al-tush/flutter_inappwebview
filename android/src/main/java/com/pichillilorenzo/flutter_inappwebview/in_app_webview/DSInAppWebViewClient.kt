@@ -58,9 +58,25 @@ open class DSInAppWebViewClient(
         private var client: OkHttpClient? = null
         private var currentProxyHost: String = ""
 
-        fun handleRequest(webResourceRequest: WebResourceRequest?): WebResourceResponse? {
-            val url: String = webResourceRequest?.url.toString()
-            val headers: Headers? = webResourceRequest?.requestHeaders?.toHeaders()
+        fun handleRequest(req: WebResourceRequest?): WebResourceResponse? {
+            if (req == null) return null
+
+            val url = req.url.toString()
+
+            if (url.contains(".mp4") || url.contains(".m3u8")) {
+                Handler(Looper.getMainLooper()).post {
+                    val obj: MutableMap<String, Any> = HashMap()
+                    obj["currentUrl"] = webViewClient.currentUrl
+                    obj["url"] = url
+                    webViewClient.channel.invokeMethod("androidOnVideoRequest", obj)
+                }
+            }
+
+            if (inAppWebView.options.proxyHost.isEmpty()) {
+                return null
+            }
+
+            val headers: Headers? = req.requestHeaders?.toHeaders()
 
             val newRequest = headers?.let {
                 Request.Builder()
@@ -81,11 +97,6 @@ open class DSInAppWebViewClient(
                     webViewClient.channel.invokeMethod("androidOnIOException", obj)
                 }
                 null
-            }
-
-            if (inAppWebView.options.proxyHost.isEmpty()) {
-                response?.body?.close();
-                return null
             }
 
             var respStream: BufferedInputStream? = null
@@ -124,26 +135,6 @@ open class DSInAppWebViewClient(
             return client!!
         }
 
-        internal class VideoInterceptor(
-                private val webViewClient: DSInAppWebViewClient,
-        ) : Interceptor {
-            @Throws(IOException::class)
-            override fun intercept(chain: Interceptor.Chain): Response {
-                val request = chain.request()
-                val url = request.url.toString()
-                // Timber.d("interceptor: $url")
-                if (url.contains(".mp4") || url.contains(".m3u8")) {
-                    Handler(Looper.getMainLooper()).post {
-                        val obj: MutableMap<String, Any> = HashMap()
-                        obj["currentUrl"] = webViewClient.currentUrl
-                        obj["url"] = url
-                        webViewClient.channel.invokeMethod("androidOnVideoRequest", obj)
-                    }
-                }
-                return chain.proceed(request)
-            }
-        }
-
         private fun makeClient(): OkHttpClient {
             val appCache = Cache(File("cacheDir", "okhttpcache"), 10 * 1024 * 1024)
 
@@ -158,7 +149,6 @@ open class DSInAppWebViewClient(
             })
 
             val builder = OkHttpClient.Builder()
-                .addNetworkInterceptor(VideoInterceptor(webViewClient))
                     .cache(appCache)
             if (inAppWebView.options.proxyHost.isNotEmpty()) {
                 builder.proxy(
