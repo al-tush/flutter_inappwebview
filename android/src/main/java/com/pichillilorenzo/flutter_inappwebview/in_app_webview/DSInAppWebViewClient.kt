@@ -88,14 +88,6 @@ open class DSInAppWebViewClient(
             val response = try {
                 newRequest?.let { getClient().newCall(newRequest).execute() }
             } catch (e: IOException) {
-                Timber.e(e)
-                Handler(Looper.getMainLooper()).post {
-                    val obj: MutableMap<String, Any> = HashMap()
-                    obj["errorText"] = e.message ?: ""
-                    obj["currentUrl"] = webViewClient.currentUrl
-                    obj["url"] = url
-                    webViewClient.channel.invokeMethod("androidOnIOException", obj)
-                }
                 null
             }
 

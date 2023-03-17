@@ -946,14 +946,6 @@ class InAppWebViewController {
           (_webview as InAppWebView).androidOnVideoRequest!.call(this, currentUrl, url);
         }
         break;
-      case "androidOnIOException":
-        if (_webview != null && _webview is InAppWebView && ((_webview as InAppWebView).androidOnIOException != null)) {
-          String currentUrl = call.arguments["currentUrl"];
-          String url = call.arguments["url"];
-          String errorText = call.arguments["errorText"];
-          (_webview as InAppWebView).androidOnIOException!.call(this, currentUrl, url, errorText);
-        }
-        break;
       default:
         throw UnimplementedError("Unimplemented ${call.method} method");
     }
