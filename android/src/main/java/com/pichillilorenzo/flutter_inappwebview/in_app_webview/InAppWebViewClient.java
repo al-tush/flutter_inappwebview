@@ -647,12 +647,10 @@ public class InAppWebViewClient extends WebViewClient {
     }
 
     WebResourceResponse response = null;
-    if (webView.contentBlockerHandler.getRuleList().size() > 0) {
-      try {
-        response = webView.contentBlockerHandler.checkUrl(webView, url);
-      } catch (Throwable e) {
-        Timber.w(e);
-      }
+    try {
+      response = webView.contentBlockerHandler.checkUrl(webView, url, "");
+    } catch (Throwable e) {
+      Timber.w(e);
     }
     return response;
   }

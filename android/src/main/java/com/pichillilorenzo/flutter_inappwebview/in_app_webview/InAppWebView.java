@@ -114,7 +114,7 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
   public Object id;
   @Nullable
   public Integer windowId;
-  public InAppWebViewClient inAppWebViewClient;
+  public DSInAppWebViewClient inAppWebViewClient;
   public InAppWebViewChromeClient inAppWebViewChromeClient;
   @Nullable
   public InAppWebViewRenderProcessClient inAppWebViewRenderProcessClient;

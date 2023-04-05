@@ -246,6 +246,10 @@ class AndroidInAppWebViewOptions
   String proxyLogin;
   String proxyPass;
 
+  // Fast and simple implementation of [InAppWebViewOptions.contentBlockers]
+  List<String> contentBlockers2Host;
+  List<String> contentBlockers2HostExternal;
+
   AndroidInAppWebViewOptions({
     this.textZoom = 100,
     this.clearSessionCache = false,
@@ -307,6 +311,8 @@ class AndroidInAppWebViewOptions
     this.proxyPort = 0,
     this.proxyLogin = '',
     this.proxyPass = '',
+    this.contentBlockers2Host = const [],
+    this.contentBlockers2HostExternal = const [],
   });
 
   @override
@@ -371,6 +377,8 @@ class AndroidInAppWebViewOptions
       "proxyPort": proxyPort,
       "proxyLogin": proxyLogin,
       "proxyPass": proxyPass,
+      "contentBlockers2Host": contentBlockers2Host,
+      "contentBlockers2HostExternal": contentBlockers2HostExternal,
     };
   }
 
@@ -449,6 +457,8 @@ class AndroidInAppWebViewOptions
     options.proxyPort = map["proxyPort"];
     options.proxyLogin = map["proxyPass"];
     options.proxyPass = map["proxyPass"];
+    options.contentBlockers2Host = List<String>.from(map["contentBlockers2Host"] ?? []);
+    options.contentBlockers2HostExternal = List<String>.from(map["contentBlockers2HostExternal"] ?? []);
     return options;
   }
 

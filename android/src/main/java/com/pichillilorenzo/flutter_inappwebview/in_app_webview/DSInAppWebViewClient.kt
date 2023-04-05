@@ -30,7 +30,8 @@ open class DSInAppWebViewClient(
 )
     : InAppWebViewClient(channel, inAppBrowserDelegate) {
 
-    private var currentUrl: String = ""
+    var currentUrl: String = ""
+        private set
     private var webViewNetworkHandler: WebViewNetworkHandler? = null
 
     override fun onPageStarted(view: WebView, url: String, favicon: Bitmap?) {
@@ -42,15 +43,15 @@ open class DSInAppWebViewClient(
             view: WebView,
             request: WebResourceRequest,
     ): WebResourceResponse? {
-        //val pageUrl = currentUrl
+        val response = super.shouldInterceptRequest(view, request)
         return try {
             if (webViewNetworkHandler == null) {
                 webViewNetworkHandler = WebViewNetworkHandler(inAppWebView, this)
             }
-            webViewNetworkHandler?.handleRequest(request)
+            webViewNetworkHandler!!.handleRequest(request, response)
         } catch (e: Throwable) {
             Timber.e(e)
-            super.shouldInterceptRequest(view, request)
+            response
         }
     }
 
@@ -61,8 +62,10 @@ open class DSInAppWebViewClient(
         private var client: OkHttpClient? = null
         private var currentProxyHost: String = ""
 
-        fun handleRequest(req: WebResourceRequest?): WebResourceResponse? {
+        fun handleRequest(req: WebResourceRequest?, interceptedResponse: WebResourceResponse?): WebResourceResponse? {
             if (req == null) return null
+
+            if (interceptedResponse != null) return interceptedResponse;
 
             val url = req.url.toString()
 

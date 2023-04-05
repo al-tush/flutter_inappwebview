@@ -46,223 +46,260 @@ public class ContentBlockerHandler {
     }
 
     public WebResourceResponse checkUrl(final InAppWebView webView, String url, ContentBlockerTriggerResourceType responseResourceType) throws URISyntaxException, InterruptedException, MalformedURLException {
-        if (webView.options.contentBlockers == null)
+        if (webView.options.contentBlockers.isEmpty() &&
+                webView.options.contentBlockers2Host.isEmpty() &&
+                webView.options.contentBlockers2HostExternal.isEmpty()) {
             return null;
+        }
 
-        URI u;
+        long start = System.nanoTime();
+        boolean found = true;
         try {
-            u = new URI(url);
-        } catch (URISyntaxException e) {
-            String[] urlSplitted = url.split(":");
-            String scheme = urlSplitted[0];
-            URL tempUrl = new URL(url.replace(scheme, "https"));
-            u = new URI(scheme, tempUrl.getUserInfo(), tempUrl.getHost(), tempUrl.getPort(), tempUrl.getPath(), tempUrl.getQuery(), tempUrl.getRef());
-        }
-        String host = u.getHost();
-        int port = u.getPort();
-        String scheme = u.getScheme();
-        // thread safe copy list
-        List<ContentBlocker> ruleListCopy = new CopyOnWriteArrayList<ContentBlocker>(ruleList);
+            URI u;
+            try {
+                u = new URI(url);
+            } catch (URISyntaxException e) {
+                String[] urlSplitted = url.split(":");
+                String scheme = urlSplitted[0];
+                URL tempUrl = new URL(url.replace(scheme, "https"));
+                u = new URI(scheme, tempUrl.getUserInfo(), tempUrl.getHost(), tempUrl.getPort(), tempUrl.getPath(), tempUrl.getQuery(), tempUrl.getRef());
+            }
+            String host = u.getHost();
+            int port = u.getPort();
+            String scheme = u.getScheme();
 
-        for (ContentBlocker contentBlocker : ruleListCopy) {
-            ContentBlockerTrigger trigger =  contentBlocker.getTrigger();
-            List<ContentBlockerTriggerResourceType> resourceTypes = trigger.getResourceType();
-            if (resourceTypes.contains(ContentBlockerTriggerResourceType.IMAGE) && !resourceTypes.contains(ContentBlockerTriggerResourceType.SVG_DOCUMENT)) {
-                resourceTypes.add(ContentBlockerTriggerResourceType.SVG_DOCUMENT);
+            for (String item : webView.options.contentBlockers2Host) {
+                if (host.endsWith(item)) {
+                    // BLOCK
+                    return new WebResourceResponse("", "", null);
+                }
             }
 
-            ContentBlockerAction action = contentBlocker.getAction();
-
-            Matcher m = trigger.getUrlFilterPatternCompiled().matcher(url);
-            if (m.matches()) {
-
-                if (!resourceTypes.isEmpty() && !resourceTypes.contains(responseResourceType)) {
-                    return null;
-                }
-                if (!trigger.getIfDomain().isEmpty()) {
-                    boolean matchFound = false;
-                    for (String domain : trigger.getIfDomain()) {
-                        if ((domain.startsWith("*") && host.endsWith(domain.replace("*", ""))) || domain.equals(host)) {
-                            matchFound = true;
-                            break;
-                        }
-                    }
-                    if (!matchFound)
-                        return null;
-                }
-                if (!trigger.getUnlessDomain().isEmpty()) {
-                    for (String domain : trigger.getUnlessDomain())
-                        if ((domain.startsWith("*") && host.endsWith(domain.replace("*", ""))) || domain.equals(host))
-                            return null;
-                }
-
-                final String[] webViewUrl = new String[1];
-                if (!trigger.getLoadType().isEmpty() || !trigger.getIfTopUrl().isEmpty() || !trigger.getUnlessTopUrl().isEmpty()) {
-                    final CountDownLatch latch = new CountDownLatch(1);
-                    Handler handler = new Handler(webView.getWebViewLooper());
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            webViewUrl[0] = webView.getUrl();
-                            latch.countDown();
-                        }
-                    });
-                    latch.await();
-                }
-
-                if (webViewUrl[0] != null) {
-                    if (!trigger.getLoadType().isEmpty()) {
-                        URI cUrl = new URI(webViewUrl[0]);
-                        String cHost = cUrl.getHost();
-                        int cPort = cUrl.getPort();
-                        String cScheme = cUrl.getScheme();
-
-                        if ( (trigger.getLoadType().contains("first-party") && cHost != null && !(cScheme.equals(scheme) && cHost.equals(host) && cPort == port)) ||
-                                (trigger.getLoadType().contains("third-party") && cHost != null && cHost.equals(host)) )
-                            return null;
-                    }
-                    if (!trigger.getIfTopUrl().isEmpty()) {
-                        boolean matchFound = false;
-                        for (String topUrl : trigger.getIfTopUrl()) {
-                            if (webViewUrl[0].startsWith(topUrl)) {
-                                matchFound = true;
-                                break;
+            if (!webView.options.contentBlockers2HostExternal.isEmpty()) {
+                try {
+                    URI currentUrl = new URI(webView.inAppWebViewClient.getCurrentUrl());
+                    if (!host.endsWith(currentUrl.getHost())) {
+                        for (String item : webView.options.contentBlockers2HostExternal) {
+                            if (host.endsWith(item)) {
+                                // BLOCK
+                                return new WebResourceResponse("", "", null);
                             }
                         }
-                        if (!matchFound)
-                            return null;
                     }
-                    if (!trigger.getUnlessTopUrl().isEmpty()) {
-                        for (String topUrl : trigger.getUnlessTopUrl())
-                            if (webViewUrl[0].startsWith(topUrl))
+                } catch (URISyntaxException e) {
+                    // Do nothing
+                }
+            }
+
+            if (webView.options.contentBlockers != null) {
+                // thread safe copy list
+                List<ContentBlocker> ruleListCopy = new CopyOnWriteArrayList<ContentBlocker>(ruleList);
+
+                for (ContentBlocker contentBlocker : ruleListCopy) {
+                    ContentBlockerTrigger trigger = contentBlocker.getTrigger();
+                    List<ContentBlockerTriggerResourceType> resourceTypes = trigger.getResourceType();
+                    if (resourceTypes.contains(ContentBlockerTriggerResourceType.IMAGE) && !resourceTypes.contains(ContentBlockerTriggerResourceType.SVG_DOCUMENT)) {
+                        resourceTypes.add(ContentBlockerTriggerResourceType.SVG_DOCUMENT);
+                    }
+
+                    ContentBlockerAction action = contentBlocker.getAction();
+
+                    Matcher m = trigger.getUrlFilterPatternCompiled().matcher(url);
+                    if (m.matches()) {
+
+                        if (!resourceTypes.isEmpty() && !resourceTypes.contains(responseResourceType)) {
+                            return null;
+                        }
+                        if (!trigger.getIfDomain().isEmpty()) {
+                            boolean matchFound = false;
+                            for (String domain : trigger.getIfDomain()) {
+                                if ((domain.startsWith("*") && host.endsWith(domain.replace("*", ""))) || domain.equals(host)) {
+                                    matchFound = true;
+                                    break;
+                                }
+                            }
+                            if (!matchFound)
                                 return null;
-                    }
-                }
+                        }
+                        if (!trigger.getUnlessDomain().isEmpty()) {
+                            for (String domain : trigger.getUnlessDomain())
+                                if ((domain.startsWith("*") && host.endsWith(domain.replace("*", ""))) || domain.equals(host))
+                                    return null;
+                        }
 
-                switch (action.getType()) {
-
-                    case BLOCK:
-                        return new WebResourceResponse("", "", null);
-
-                    case CSS_DISPLAY_NONE:
-                        final String cssSelector = action.getSelector();
-                        final String jsScript = "(function(d) { " +
-                                "   function hide () { " +
-                                "       if (!d.getElementById('css-display-none-style')) { " +
-                                "           var c = d.createElement('style'); " +
-                                "           c.id = 'css-display-none-style'; " +
-                                "           c.innerHTML = '" + cssSelector + " { display: none !important; }'; " +
-                                "           d.body.appendChild(c); " +
-                                "       }" +
-                                "       d.querySelectorAll('" + cssSelector + "').forEach(function (item, index) { " +
-                                "           item.setAttribute('style', 'display: none !important;'); " +
-                                "       }); " +
-                                "   }; " +
-                                "   hide(); " +
-                                "   d.addEventListener('DOMContentLoaded', function(event) { hide(); }); " +
-                                "})(document);";
-
-                        final Handler handler = new Handler(webView.getWebViewLooper());
-                        handler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                                    webView.evaluateJavascript(jsScript, null);
-                                } else {
-                                    webView.loadUrl("javascript:" + jsScript);
+                        final String[] webViewUrl = new String[1];
+                        if (!trigger.getLoadType().isEmpty() || !trigger.getIfTopUrl().isEmpty() || !trigger.getUnlessTopUrl().isEmpty()) {
+                            final CountDownLatch latch = new CountDownLatch(1);
+                            Handler handler = new Handler(webView.getWebViewLooper());
+                            handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    webViewUrl[0] = webView.getUrl();
+                                    latch.countDown();
                                 }
+                            });
+                            latch.await();
+                        }
+
+                        if (webViewUrl[0] != null) {
+                            if (!trigger.getLoadType().isEmpty()) {
+                                URI cUrl = new URI(webViewUrl[0]);
+                                String cHost = cUrl.getHost();
+                                int cPort = cUrl.getPort();
+                                String cScheme = cUrl.getScheme();
+
+                                if ((trigger.getLoadType().contains("first-party") && cHost != null && !(cScheme.equals(scheme) && cHost.equals(host) && cPort == port)) ||
+                                        (trigger.getLoadType().contains("third-party") && cHost != null && cHost.equals(host)))
+                                    return null;
                             }
-                        });
-                        break;
-
-                    case MAKE_HTTPS:
-                        if (scheme.equals("http") && (port == -1 || port == 80)) {
-                            String urlHttps = url.replace("http://", "https://");
-
-                            Request mRequest = new Request.Builder().url(urlHttps).build();
-                            Response response = null;
-
-                            try {
-                                response = Util.getBasicOkHttpClient().newCall(mRequest).execute();
-                                byte[] dataBytes = response.body().bytes();
-                                InputStream dataStream = new ByteArrayInputStream(dataBytes);
-
-                                String[] contentTypeSplitted = response.header("content-type", "text/plain").split(";");
-
-                                String contentType = contentTypeSplitted[0].trim();
-                                String encoding = (contentTypeSplitted.length > 1 && contentTypeSplitted[1].contains("charset="))
-                                        ? contentTypeSplitted[1].replace("charset=", "").trim()
-                                        : "utf-8";
-
-                                response.body().close();
-                                response.close();
-
-                                return new WebResourceResponse(contentType, encoding, dataStream);
-
-                            } catch (Exception e) {
-                                if (response != null) {
-                                    response.body().close();
-                                    response.close();
+                            if (!trigger.getIfTopUrl().isEmpty()) {
+                                boolean matchFound = false;
+                                for (String topUrl : trigger.getIfTopUrl()) {
+                                    if (webViewUrl[0].startsWith(topUrl)) {
+                                        matchFound = true;
+                                        break;
+                                    }
                                 }
-                                if (!(e instanceof SSLHandshakeException)) {
-                                    Timber.w(e);
-                                    Log.e(LOG_TAG, e.getMessage());
-                                }
+                                if (!matchFound)
+                                    return null;
+                            }
+                            if (!trigger.getUnlessTopUrl().isEmpty()) {
+                                for (String topUrl : trigger.getUnlessTopUrl())
+                                    if (webViewUrl[0].startsWith(topUrl))
+                                        return null;
                             }
                         }
-                        break;
+
+                        switch (action.getType()) {
+
+                            case BLOCK:
+                                return new WebResourceResponse("", "", null);
+
+                            case CSS_DISPLAY_NONE:
+                                final String cssSelector = action.getSelector();
+                                final String jsScript = "(function(d) { " +
+                                        "   function hide () { " +
+                                        "       if (!d.getElementById('css-display-none-style')) { " +
+                                        "           var c = d.createElement('style'); " +
+                                        "           c.id = 'css-display-none-style'; " +
+                                        "           c.innerHTML = '" + cssSelector + " { display: none !important; }'; " +
+                                        "           d.body.appendChild(c); " +
+                                        "       }" +
+                                        "       d.querySelectorAll('" + cssSelector + "').forEach(function (item, index) { " +
+                                        "           item.setAttribute('style', 'display: none !important;'); " +
+                                        "       }); " +
+                                        "   }; " +
+                                        "   hide(); " +
+                                        "   d.addEventListener('DOMContentLoaded', function(event) { hide(); }); " +
+                                        "})(document);";
+
+                                final Handler handler = new Handler(webView.getWebViewLooper());
+                                handler.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                                            webView.evaluateJavascript(jsScript, null);
+                                        } else {
+                                            webView.loadUrl("javascript:" + jsScript);
+                                        }
+                                    }
+                                });
+                                break;
+
+                            case MAKE_HTTPS:
+                                if (scheme.equals("http") && (port == -1 || port == 80)) {
+                                    String urlHttps = url.replace("http://", "https://");
+
+                                    Request mRequest = new Request.Builder().url(urlHttps).build();
+                                    Response response = null;
+
+                                    try {
+                                        response = Util.getBasicOkHttpClient().newCall(mRequest).execute();
+                                        byte[] dataBytes = response.body().bytes();
+                                        InputStream dataStream = new ByteArrayInputStream(dataBytes);
+
+                                        String[] contentTypeSplitted = response.header("content-type", "text/plain").split(";");
+
+                                        String contentType = contentTypeSplitted[0].trim();
+                                        String encoding = (contentTypeSplitted.length > 1 && contentTypeSplitted[1].contains("charset="))
+                                                ? contentTypeSplitted[1].replace("charset=", "").trim()
+                                                : "utf-8";
+
+                                        response.body().close();
+                                        response.close();
+
+                                        return new WebResourceResponse(contentType, encoding, dataStream);
+
+                                    } catch (Exception e) {
+                                        if (response != null) {
+                                            response.body().close();
+                                            response.close();
+                                        }
+                                        if (!(e instanceof SSLHandshakeException)) {
+                                            Timber.w(e);
+                                            Log.e(LOG_TAG, e.getMessage());
+                                        }
+                                    }
+                                }
+                                break;
+                        }
+                    }
                 }
             }
+            found = false;
+            return null;
+        } finally {
+            long time = System.nanoTime() - start;
+            Timber.d("Exec time %d res: %b", time, found);
         }
-        return null;
     }
 
-    public WebResourceResponse checkUrl(final InAppWebView webView, String url) throws URISyntaxException, InterruptedException, MalformedURLException {
-        ContentBlockerTriggerResourceType responseResourceType = getResourceTypeFromUrl(url);
-        return checkUrl(webView, url, responseResourceType);
-    }
+//    public WebResourceResponse checkUrl(final InAppWebView webView, String url) throws URISyntaxException, InterruptedException, MalformedURLException {
+//        ContentBlockerTriggerResourceType responseResourceType = getResourceTypeFromUrl(url);
+//        return checkUrl(webView, url, responseResourceType);
+//    }
 
     public WebResourceResponse checkUrl(final InAppWebView webView, String url, String contentType) throws URISyntaxException, InterruptedException, MalformedURLException {
         ContentBlockerTriggerResourceType responseResourceType = getResourceTypeFromContentType(contentType);
         return checkUrl(webView, url, responseResourceType);
     }
 
-    public ContentBlockerTriggerResourceType getResourceTypeFromUrl(String url) {
-        ContentBlockerTriggerResourceType responseResourceType = ContentBlockerTriggerResourceType.RAW;
-
-        if (url.startsWith("http://") || url.startsWith("https://")) {
-            // make an HTTP "HEAD" request to the server for that URL. This will not return the full content of the URL.
-            Request mRequest = new Request.Builder().url(url).head().build();
-            Response response = null;
-            try {
-                response = Util.getBasicOkHttpClient().newCall(mRequest).execute();
-
-                if (response.header("content-type") != null) {
-                    String[] contentTypeSplitted = response.header("content-type").split(";");
-
-                    String contentType = contentTypeSplitted[0].trim();
-                    String encoding = (contentTypeSplitted.length > 1 && contentTypeSplitted[1].contains("charset="))
-                            ? contentTypeSplitted[1].replace("charset=", "").trim()
-                            : "utf-8";
-
-                    response.body().close();
-                    response.close();
-                    responseResourceType = getResourceTypeFromContentType(contentType);
-                }
-
-            } catch (Exception e) {
-                if (response != null) {
-                    response.body().close();
-                    response.close();
-                }
-                if (!(e instanceof SSLHandshakeException)) {
-                    Timber.w(e);
-                    Log.e(LOG_TAG, e.getMessage());
-                }
-            }
-        }
-        return responseResourceType;
-    }
+//    public ContentBlockerTriggerResourceType getResourceTypeFromUrl(String url) {
+//        ContentBlockerTriggerResourceType responseResourceType = ContentBlockerTriggerResourceType.RAW;
+//
+//        if (url.startsWith("http://") || url.startsWith("https://")) {
+//            // make an HTTP "HEAD" request to the server for that URL. This will not return the full content of the URL.
+//            Request mRequest = new Request.Builder().url(url).head().build();
+//            Response response = null;
+//            try {
+//                response = Util.getBasicOkHttpClient().newCall(mRequest).execute();
+//
+//                if (response.header("content-type") != null) {
+//                    String[] contentTypeSplitted = response.header("content-type").split(";");
+//
+//                    String contentType = contentTypeSplitted[0].trim();
+//                    String encoding = (contentTypeSplitted.length > 1 && contentTypeSplitted[1].contains("charset="))
+//                            ? contentTypeSplitted[1].replace("charset=", "").trim()
+//                            : "utf-8";
+//
+//                    response.body().close();
+//                    response.close();
+//                    responseResourceType = getResourceTypeFromContentType(contentType);
+//                }
+//
+//            } catch (Exception e) {
+//                if (response != null) {
+//                    response.body().close();
+//                    response.close();
+//                }
+//                if (!(e instanceof SSLHandshakeException)) {
+//                    Timber.w(e);
+//                    Log.e(LOG_TAG, e.getMessage());
+//                }
+//            }
+//        }
+//        return responseResourceType;
+//    }
 
     public ContentBlockerTriggerResourceType getResourceTypeFromContentType(String contentType) {
         ContentBlockerTriggerResourceType responseResourceType = ContentBlockerTriggerResourceType.RAW;

@@ -36,6 +36,8 @@ public class InAppWebViewOptions implements Options<InAppWebViewInterface> {
   public Boolean horizontalScrollBarEnabled = true;
   public List<String> resourceCustomSchemes = new ArrayList<>();
   public List<Map<String, Map<String, Object>>> contentBlockers = new ArrayList<>();
+  public List<String> contentBlockers2Host = new ArrayList<>();
+  public List<String> contentBlockers2HostExternal = new ArrayList<>();
   public Integer preferredContentMode = PreferredContentModeOptionType.RECOMMENDED.toValue();
   public Boolean useShouldInterceptAjaxRequest = false;
   public Boolean useShouldInterceptFetchRequest = false;
@@ -165,6 +167,12 @@ public class InAppWebViewOptions implements Options<InAppWebViewInterface> {
           break;
         case "contentBlockers":
           contentBlockers = (List<Map<String, Map<String, Object>>>) value;
+          break;
+        case "contentBlockers2Host":
+          contentBlockers2Host = (List<String>) value;
+          break;
+        case "contentBlockers2HostExternal":
+          contentBlockers2HostExternal = (List<String>) value;
           break;
         case "preferredContentMode":
           preferredContentMode = (Integer) value;
@@ -402,6 +410,8 @@ public class InAppWebViewOptions implements Options<InAppWebViewInterface> {
     options.put("horizontalScrollBarEnabled", horizontalScrollBarEnabled);
     options.put("resourceCustomSchemes", resourceCustomSchemes);
     options.put("contentBlockers", contentBlockers);
+    options.put("contentBlockers2Host", contentBlockers2Host);
+    options.put("contentBlockers2HostExternal", contentBlockers2HostExternal);
     options.put("preferredContentMode", preferredContentMode);
     options.put("useShouldInterceptAjaxRequest", useShouldInterceptAjaxRequest);
     options.put("useShouldInterceptFetchRequest", useShouldInterceptFetchRequest);
