@@ -70,13 +70,19 @@ public class InAppWebViewClient extends WebViewClient {
   public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
     InAppWebView webView = (InAppWebView) view;
     if (webView.options.useShouldOverrideUrlLoading) {
+      String url = request.getUrl().toString();
+      for (String item : webView.options.shouldOverrideUrlLoadingExcepts) {
+        if (url.contains(item)) {
+          return false;
+        }
+      }
       boolean isRedirect = false;
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
         isRedirect = request.isRedirect();
       }
       onShouldOverrideUrlLoading(
               webView,
-              request.getUrl().toString(),
+              url,
               request.getMethod(),
               request.getRequestHeaders(),
               request.isForMainFrame(),
@@ -102,6 +108,11 @@ public class InAppWebViewClient extends WebViewClient {
   public boolean shouldOverrideUrlLoading(WebView webView, String url) {
     InAppWebView inAppWebView = (InAppWebView) webView;
     if (inAppWebView.options.useShouldOverrideUrlLoading) {
+      for (String item : inAppWebView.options.shouldOverrideUrlLoadingExcepts) {
+        if (url.contains(item)) {
+          return false;
+        }
+      }
       onShouldOverrideUrlLoading(inAppWebView, url, "GET", null,true, false, false);
       return true;
     }

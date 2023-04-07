@@ -96,6 +96,8 @@ class InAppWebViewOptions
   ///Set to `true` to be able to listen at the [WebView.shouldOverrideUrlLoading] event. The default value is `false`.
   bool useShouldOverrideUrlLoading;
 
+  List<String> shouldOverrideUrlLoadingExcepts;
+
   ///Set to `true` to be able to listen at the [WebView.onLoadResource] event. The default value is `false`.
   bool useOnLoadResource;
 
@@ -207,6 +209,7 @@ class InAppWebViewOptions
 
   InAppWebViewOptions(
       {this.useShouldOverrideUrlLoading = false,
+      this.shouldOverrideUrlLoadingExcepts = const [],
       this.useOnLoadResource = false,
       this.useOnDownloadStart = false,
       this.clearCache = false,
@@ -248,6 +251,7 @@ class InAppWebViewOptions
 
     return {
       "useShouldOverrideUrlLoading": useShouldOverrideUrlLoading,
+      "shouldOverrideUrlLoadingExcepts": shouldOverrideUrlLoadingExcepts,
       "useOnLoadResource": useOnLoadResource,
       "useOnDownloadStart": useOnDownloadStart,
       "clearCache": clearCache,
@@ -289,6 +293,7 @@ class InAppWebViewOptions
 
     InAppWebViewOptions options = InAppWebViewOptions();
     options.useShouldOverrideUrlLoading = map["useShouldOverrideUrlLoading"];
+    options.shouldOverrideUrlLoadingExcepts = List<String>.from(map["shouldOverrideUrlLoadingExcepts"] ?? []);
     options.useOnLoadResource = map["useOnLoadResource"];
     options.useOnDownloadStart = map["useOnDownloadStart"];
     options.clearCache = map["clearCache"];

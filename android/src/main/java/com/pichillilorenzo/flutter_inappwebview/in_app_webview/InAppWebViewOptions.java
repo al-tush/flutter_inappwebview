@@ -23,6 +23,7 @@ public class InAppWebViewOptions implements Options<InAppWebViewInterface> {
   public static final String LOG_TAG = "InAppWebViewOptions";
 
   public Boolean useShouldOverrideUrlLoading = false;
+  public List<String> shouldOverrideUrlLoadingExcepts = new ArrayList<>();
   public Boolean useOnLoadResource = false;
   public Boolean useOnDownloadStart = false;
   public Boolean clearCache = false;
@@ -128,6 +129,9 @@ public class InAppWebViewOptions implements Options<InAppWebViewInterface> {
       switch (key) {
         case "useShouldOverrideUrlLoading":
           useShouldOverrideUrlLoading = (Boolean) value;
+          break;
+        case "shouldOverrideUrlLoadingExcepts":
+          shouldOverrideUrlLoadingExcepts = (List<String>) value;
           break;
         case "useOnLoadResource":
           useOnLoadResource = (Boolean) value;
@@ -397,6 +401,7 @@ public class InAppWebViewOptions implements Options<InAppWebViewInterface> {
   public Map<String, Object> toMap() {
     Map<String, Object> options = new HashMap<>();
     options.put("useShouldOverrideUrlLoading", useShouldOverrideUrlLoading);
+    options.put("shouldOverrideUrlLoadingExcepts", shouldOverrideUrlLoadingExcepts);
     options.put("useOnLoadResource", useOnLoadResource);
     options.put("useOnDownloadStart", useOnDownloadStart);
     options.put("clearCache", clearCache);
