@@ -68,17 +68,19 @@ public class ContentBlockerHandler {
             int port = u.getPort();
             String scheme = u.getScheme();
 
-            for (String item : webView.options.contentBlockers2Host) {
-                if (host.endsWith(item)) {
-                    // BLOCK
-                    return new WebResourceResponse("", "", null);
+            if (!webView.inAppWebViewClient.getCurrentUrl().equals(url)) {
+                for (String item : webView.options.contentBlockers2Host) {
+                    if (host.endsWith(item)) {
+                        // BLOCK
+                        return new WebResourceResponse("", "", null);
+                    }
                 }
             }
 
             if (!webView.options.contentBlockers2HostExternal.isEmpty()) {
                 try {
                     URI currentUrl = new URI(webView.inAppWebViewClient.getCurrentUrl());
-                    if (!host.endsWith(currentUrl.getHost())) {
+                    if (currentUrl.getHost() != null && !host.endsWith(currentUrl.getHost())) {
                         for (String item : webView.options.contentBlockers2HostExternal) {
                             if (host.endsWith(item)) {
                                 // BLOCK

@@ -43,6 +43,10 @@ open class DSInAppWebViewClient(
             view: WebView,
             request: WebResourceRequest,
     ): WebResourceResponse? {
+        if (currentUrl == "" && request.isForMainFrame) {
+            currentUrl = request.url.toString();
+        }
+
         val response = super.shouldInterceptRequest(view, request)
         return try {
             if (webViewNetworkHandler == null) {
