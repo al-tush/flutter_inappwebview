@@ -35,6 +35,7 @@ import java.util.Map;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import timber.log.Timber;
+import pro.userx.UserX;
 
 public class InAppWebViewMethodHandler implements MethodChannel.MethodCallHandler {
   static final String LOG_TAG = "IAWMethodHandler";
@@ -607,6 +608,15 @@ public class InAppWebViewMethodHandler implements MethodChannel.MethodCallHandle
         } else {
           result.success(false);
         }
+        break;
+      case "setUserX":
+        WebView wv = (WebView)webView;
+        UserX.setWebView(wv);
+        result.success(null);
+        break;
+      case "clearUserX":
+        UserX.setWebView(null);
+        result.success(null);
         break;
       default:
         result.notImplemented();

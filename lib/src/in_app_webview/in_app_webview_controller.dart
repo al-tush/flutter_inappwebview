@@ -2588,4 +2588,15 @@ class InAppWebViewController {
     Map<String, dynamic> args = <String, dynamic>{};
     return await _staticChannel.invokeMethod('getDefaultUserAgent', args);
   }
+  
+  Future<void> setUserX() async {
+    final args = <String, dynamic>{};
+    return await _channel.invokeMethod('setUserX', args);
+  }
+
+  Future<void> clearUserX() async {
+    final args = <String, dynamic>{};
+    return await _channel.invokeMethod('clearUserX', args);
+  }
+
 }
