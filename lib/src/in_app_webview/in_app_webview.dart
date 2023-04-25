@@ -290,7 +290,7 @@ class InAppWebView extends StatefulWidget implements WebView {
       URLAuthenticationChallenge challenge)? onReceivedServerTrustAuthRequest;
 
   @override
-  final void Function(InAppWebViewController controller, int x, int y)?
+  final void Function(InAppWebViewController controller, int x, int y, int width, int height, int pageHeight)?
       onScrollChanged;
 
   @override

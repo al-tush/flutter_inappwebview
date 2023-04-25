@@ -377,7 +377,7 @@ class HeadlessInAppWebView implements WebView {
       URLAuthenticationChallenge challenge)? onReceivedServerTrustAuthRequest;
 
   @override
-  void Function(InAppWebViewController controller, int x, int y)?
+  void Function(InAppWebViewController controller, int x, int y, int width, int height, int pageHeight)?
       onScrollChanged;
 
   @override

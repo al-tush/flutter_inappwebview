@@ -198,6 +198,8 @@ public class InAppWebViewClient extends WebViewClient {
     } else {
       webView.loadUrl("javascript:" + source.replaceAll("[\r\n]+", ""));
     }
+
+    webView.loadUrl("javascript:"+ JavaScriptBridgeJS.JAVASCRIPT_BRIDGE_NAME + ".setWebViewHeight(document.body.scrollHeight)");
   }
 
   @Override

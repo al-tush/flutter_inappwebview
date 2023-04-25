@@ -109,7 +109,7 @@ abstract class WebView {
   ///**Official Android API**: https://developer.android.com/reference/android/webkit/WebView#onScrollChanged(int,%20int,%20int,%20int)
   ///
   ///**Official iOS API**: https://developer.apple.com/documentation/uikit/uiscrollviewdelegate/1619392-scrollviewdidscroll
-  final void Function(InAppWebViewController controller, int x, int y)?
+  final void Function(InAppWebViewController controller, int x, int y, int width, int height, int pageHeight)?
       onScrollChanged;
 
   ///Use [onDownloadStartRequest] instead

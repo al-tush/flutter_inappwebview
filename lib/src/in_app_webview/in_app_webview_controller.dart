@@ -224,9 +224,13 @@ class InAppWebViewController {
             _inAppBrowser != null) {
           int x = call.arguments["x"];
           int y = call.arguments["y"];
-          if (_webview != null && _webview!.onScrollChanged != null)
-            _webview!.onScrollChanged!(this, x, y);
-          else
+          if (_webview != null && _webview!.onScrollChanged != null) {
+            // ToDo: implement for iOS
+            final width = call.arguments["width"];
+            final height = call.arguments["height"];
+            final pageHeight = call.arguments["pageHeight"];
+            _webview!.onScrollChanged!(this, x, y, width, height, pageHeight);
+          } else
             _inAppBrowser!.onScrollChanged(x, y);
         }
         break;

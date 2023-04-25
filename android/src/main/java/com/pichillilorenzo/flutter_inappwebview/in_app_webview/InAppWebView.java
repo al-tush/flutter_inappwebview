@@ -133,6 +133,8 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
   public Handler mainLooperHandler = new Handler(getWebViewLooper());
   static Handler mHandler = new Handler();
 
+  public int pageHeight = -1;
+
   public Runnable checkScrollStoppedTask;
   public int initialPositionScrollStoppedTask;
   public int newCheckScrollStoppedTask = 100; // ms
@@ -1163,7 +1165,6 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
                                  int oldX,
                                  int oldY) {
     super.onScrollChanged(x, y, oldX, oldY);
-
     if (floatingContextMenu != null) {
       floatingContextMenu.setAlpha(0f);
       floatingContextMenu.setVisibility(View.GONE);
@@ -1172,6 +1173,9 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
     Map<String, Object> obj = new HashMap<>();
     obj.put("x", x);
     obj.put("y", y);
+    obj.put("width", getWidth());
+    obj.put("height", getHeight());
+    obj.put("pageHeight", pageHeight);
     channel.invokeMethod("onScrollChanged", obj);
   }
 

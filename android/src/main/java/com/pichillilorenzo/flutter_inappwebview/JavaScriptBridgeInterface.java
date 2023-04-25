@@ -130,6 +130,11 @@ public class JavaScriptBridgeInterface {
     });
   }
 
+  @JavascriptInterface
+  public void setWebViewHeight(final float height) {
+    inAppWebView.pageHeight = Math.round(height * inAppWebView.getContext().getResources().getDisplayMetrics().density);
+  }
+
   public void dispose() {
     inAppWebView = null;
   }
