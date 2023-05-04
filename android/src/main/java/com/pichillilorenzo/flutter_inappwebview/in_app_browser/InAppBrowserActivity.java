@@ -20,6 +20,7 @@ import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
 import android.widget.SearchView;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
@@ -196,6 +197,7 @@ public class InAppBrowserActivity extends AppCompatActivity implements InAppBrow
 
     if (actionBar != null) {
       actionBar.setDisplayShowTitleEnabled(!options.hideTitleBar);
+      actionBar.setDisplayHomeAsUpEnabled(true);
 
       if (options.hideToolbarTop)
         actionBar.hide();
@@ -277,6 +279,15 @@ public class InAppBrowserActivity extends AppCompatActivity implements InAppBrow
     }
 
     return true;
+  }
+
+  @Override
+  public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+    if (item.getItemId() == android.R.id.home) {
+      onKeyDown(KeyEvent.KEYCODE_BACK, new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_BACK));
+      return true;
+    }
+    return super.onOptionsItemSelected(item);
   }
 
   public boolean onKeyDown(int keyCode, KeyEvent event) {
