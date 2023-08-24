@@ -70,7 +70,8 @@ public class InAppWebViewOptions: Options<InAppWebView> {
     var allowingReadAccessTo: String? = nil
     var disableLongPressContextMenuOnLinks = false
     var disableInputAccessoryView = false
-    
+    var isInspectable = false
+
     override init(){
         super.init()
     }
@@ -132,6 +133,9 @@ public class InAppWebViewOptions: Options<InAppWebView> {
                 realOptions["pageZoom"] = Float(webView.pageZoom)
                 realOptions["limitsNavigationsToAppBoundDomains"] = configuration.limitsNavigationsToAppBoundDomains
                 realOptions["javaScriptEnabled"] = configuration.defaultWebpagePreferences.allowsContentJavaScript
+            }
+            if #available(iOS 16.4, *) {
+                realOptions["isInspectable"] = webView.isInspectable
             }
         }
         return realOptions

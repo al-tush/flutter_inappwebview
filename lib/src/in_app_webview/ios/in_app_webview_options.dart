@@ -227,42 +227,49 @@ class IOSInAppWebViewOptions
   ///The default value is `false`.
   bool disableInputAccessoryView;
 
-  IOSInAppWebViewOptions(
-      {this.disallowOverScroll = false,
-      this.enableViewportScale = false,
-      this.suppressesIncrementalRendering = false,
-      this.allowsAirPlayForMediaPlayback = true,
-      this.allowsBackForwardNavigationGestures = true,
-      this.allowsLinkPreview = true,
-      this.ignoresViewportScaleLimits = false,
-      this.allowsInlineMediaPlayback = false,
-      this.allowsPictureInPictureMediaPlayback = true,
-      this.isFraudulentWebsiteWarningEnabled = true,
-      this.selectionGranularity = IOSWKSelectionGranularity.DYNAMIC,
-      this.dataDetectorTypes = const [IOSWKDataDetectorTypes.NONE],
-      this.sharedCookiesEnabled = false,
-      this.automaticallyAdjustsScrollIndicatorInsets = false,
-      this.accessibilityIgnoresInvertColors = false,
-      this.decelerationRate = IOSUIScrollViewDecelerationRate.NORMAL,
-      this.alwaysBounceVertical = false,
-      this.alwaysBounceHorizontal = false,
-      this.scrollsToTop = true,
-      this.isPagingEnabled = false,
-      this.maximumZoomScale = 1.0,
-      this.minimumZoomScale = 1.0,
-      this.contentInsetAdjustmentBehavior =
-          IOSUIScrollViewContentInsetAdjustmentBehavior.NEVER,
-      this.isDirectionalLockEnabled = false,
-      this.mediaType,
-      this.pageZoom = 1.0,
-      this.limitsNavigationsToAppBoundDomains = false,
-      this.useOnNavigationResponse = false,
-      this.applePayAPIEnabled = false,
-      this.allowingReadAccessTo,
-      this.disableLongPressContextMenuOnLinks = false,
-      this.disableInputAccessoryView = false}) {
-    assert(
-        allowingReadAccessTo == null || allowingReadAccessTo!.isScheme("file"));
+  ///Controls whether this WebView is inspectable in Web Inspector.
+  ///
+  ///The default value is `false`.
+  /// https://developer.apple.com/documentation/webkit/wkwebview/4111163-isinspectable
+  bool isInspectable;
+
+  IOSInAppWebViewOptions({
+    this.disallowOverScroll = false,
+    this.enableViewportScale = false,
+    this.suppressesIncrementalRendering = false,
+    this.allowsAirPlayForMediaPlayback = true,
+    this.allowsBackForwardNavigationGestures = true,
+    this.allowsLinkPreview = true,
+    this.ignoresViewportScaleLimits = false,
+    this.allowsInlineMediaPlayback = false,
+    this.allowsPictureInPictureMediaPlayback = true,
+    this.isFraudulentWebsiteWarningEnabled = true,
+    this.selectionGranularity = IOSWKSelectionGranularity.DYNAMIC,
+    this.dataDetectorTypes = const [IOSWKDataDetectorTypes.NONE],
+    this.sharedCookiesEnabled = false,
+    this.automaticallyAdjustsScrollIndicatorInsets = false,
+    this.accessibilityIgnoresInvertColors = false,
+    this.decelerationRate = IOSUIScrollViewDecelerationRate.NORMAL,
+    this.alwaysBounceVertical = false,
+    this.alwaysBounceHorizontal = false,
+    this.scrollsToTop = true,
+    this.isPagingEnabled = false,
+    this.maximumZoomScale = 1.0,
+    this.minimumZoomScale = 1.0,
+    this.contentInsetAdjustmentBehavior =
+        IOSUIScrollViewContentInsetAdjustmentBehavior.NEVER,
+    this.isDirectionalLockEnabled = false,
+    this.mediaType,
+    this.pageZoom = 1.0,
+    this.limitsNavigationsToAppBoundDomains = false,
+    this.useOnNavigationResponse = false,
+    this.applePayAPIEnabled = false,
+    this.allowingReadAccessTo,
+    this.disableLongPressContextMenuOnLinks = false,
+    this.disableInputAccessoryView = false,
+    this.isInspectable = false,
+  }) {
+    assert(allowingReadAccessTo == null || allowingReadAccessTo!.isScheme("file"));
   }
 
   @override
@@ -309,6 +316,7 @@ class IOSInAppWebViewOptions
       "allowingReadAccessTo": allowingReadAccessTo.toString(),
       "disableLongPressContextMenuOnLinks": disableLongPressContextMenuOnLinks,
       "disableInputAccessoryView": disableInputAccessoryView,
+      "isInspectable": isInspectable,
     };
   }
 

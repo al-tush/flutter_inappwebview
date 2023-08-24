@@ -391,6 +391,10 @@ public class InAppWebView: WKWebView, UIScrollViewDelegate, WKUIDelegate, WKNavi
             if options.clearCache {
                 clearCache()
             }
+            
+            if #available(iOS 16.4, *) {
+                isInspectable = options.isInspectable
+            }
         }
         
         prepareAndAddUserScripts()
